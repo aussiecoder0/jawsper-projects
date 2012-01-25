@@ -100,12 +100,26 @@ namespace SkyTraqCs
 
             return result;
         }
-
+        void cpy(byte[] dst, int pos, byte[] src)
+        {
+            int j = pos;
+            for (int i = src.Length - 1; i >= 0; --i)
+            {
+                dst[j++] = src[i];
+            }
+        }
         public void WriteDataloggerConfig(SkyTraqConfig config)
         {
             var request = new SkyTraqPackage(27);
             request.data[0] = SkyTraqCommand.SKYTRAQ_COMMAND_WRITE_CONFIG;
-
+            cpy(request.data, 1, BitConverter.GetBytes(config.max_time));
+            cpy(request.data, 5, BitConverter.GetBytes(config.min_time));
+            cpy(request.data, 9,BitConverter.GetBytes(config.max_distance));
+            cpy(request.data, 13,BitConverter.GetBytes(config.min_distance));
+            cpy(request.data, 17,BitConverter.GetBytes(config.max_speed));
+            cpy(request.data, 21,BitConverter.GetBytes(config.min_speed));
+            request.data[25] = config.datalog_enable;
+            request.data[26] = config.log_fifo_mode;
             WritePackageWithResponse(request);
         }
 
