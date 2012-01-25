@@ -16,9 +16,9 @@ namespace SkyTraqTester
             //st.SetSpeed(38400, false);
             //st.OutputDisable();
             st.ReadSoftwareVersion();
-            //SkyTraqConfig cfg;
-            //st.ReadDataloggerConfig(out cfg);
-            //cfg.datalog_enable = 0;
+            SkyTraqConfig cfg;
+            st.ReadDataloggerConfig(out cfg);
+            //cfg.datalog_enable = 1;
             //st.WriteDataloggerConfig(cfg);
 
             //st.ClearDatalog();
@@ -30,6 +30,8 @@ namespace SkyTraqTester
 
 
             //st.OutputEnableNMEA();
+
+            st.DownloadAndUpdateAGPS();
 
             st.CloseDevice();
 
