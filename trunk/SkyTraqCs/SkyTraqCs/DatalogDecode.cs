@@ -39,7 +39,7 @@ namespace SkyTraqCs
             long time = 0;
             int ecef_x = 0, ecef_y = 0, ecef_z = 0, speed = 0;
             double latitude = 0.0, longitude = 0.0, height = 0.0;
-            int tagged_entry = 0;
+            //int tagged_entry = 0;
             long last_timestamp = first_timestamp;
 
             Debug.WriteLine("Processing {0} bytes", buffer.Length);
@@ -53,7 +53,7 @@ namespace SkyTraqCs
                     // long entry
                     DecodeLongEntry(buffer, offset, ref time, ref ecef_x, ref ecef_y, ref ecef_z, ref speed);
                     EcefToGeo(ecef_x, ecef_y, ecef_z, ref longitude, ref latitude, ref height);
-                    if ((buffer[offset] & 0x20) != 0) tagged_entry = 1;
+                    //if ((buffer[offset] & 0x20) != 0) tagged_entry = 1;
 
                     if (last_timestamp > 0 && (time > (last_timestamp + 36001)))
                     {
