@@ -43,8 +43,14 @@
   <ItemGroup>
     <Compile Include="DatalogDecode.cs" />
     <Compile Include="NMEA.cs" />
+    <Compile Include="SkyTraq.AGPS.cs" />
     <Compile Include="SkyTraq.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SkyTraq.DataLogger.cs" />
+    <Compile Include="SkyTraq.LowLevel.cs" />
+    <Compile Include="SkyTraq.NMEA.cs" />
+    <Compile Include="SkyTraqCommand.cs" />
+    <Compile Include="SkyTraqConfig.cs" />
     <Compile Include="SkyTraqPackage.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
