@@ -91,11 +91,32 @@ namespace SkyTraqCs
             return last_timestamp;
         }
 
+        /// <summary>
+        /// Fetch n bits from x, started at bit s.
+        /// 
+        /// This function can be used to fetch n bits from the value x. The
+        /// s value set the startposition to read. The startposition is
+        /// count from the LSB and starts at 0. The result starts at a
+        /// LSB, as this isn't just an and-bitmask but also some
+        /// bit-shifting operations. GB(0xFF, 2, 1) will so
+        /// return 0x01 (0000 0001) instead of
+        /// 0x04 (0000 0100).
+        /// </summary>
+        /// <param name="x">The value to read some bits.</param>
+        /// <param name="s">The startposition to read some bits.</param>
+        /// <param name="n">The number of bits to read.</param>
+        /// <returns>The selected bits, aligned to a LSB.</returns>
+        private static int GB(int x, byte s, byte n)
+        {
+            return (int)((x >> s) & ((1U << n) - 1));
+        }
+
         private static void DecodeShortEntry(byte[] buffer, int offset, ref long time, ref int ecef_x, ref int ecef_y, ref int ecef_z, ref int speed)
         {
             int dt, dx, dy, dz;
             speed = buffer[offset + 1];
             dt = (buffer[offset + 2] << 8) + buffer[offset + 3];
+            int dxx = (buffer[offset + 4] << 2) + GB(buffer[offset + 5], 6, 3);
             dx = (buffer[offset + 4] << 2) + ((buffer[offset + 5] >> 6) & 0x03);
             dy = (buffer[offset + 5] & 0x3f) + (((buffer[offset + 6] >> 4) & 0x0f) << 6);
             dz = ((buffer[offset + 6] & 0x03) << 8) + buffer[offset + 7];
@@ -112,6 +133,7 @@ namespace SkyTraqCs
 
         private static void DecodeLongEntry(byte[] buffer, int offset, ref long time, ref int ecef_x, ref int ecef_y, ref int ecef_z, ref int speed)
         {
+            // wno: week number; tow: time of week (GPS time)
             int wno, tow;
 
             speed = buffer[offset + 1];
@@ -162,7 +184,7 @@ namespace SkyTraqCs
 
         static DateTime ConvertFromUnixTimestamp(double timestamp)
         {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             return origin.AddSeconds(timestamp);
         }
 
