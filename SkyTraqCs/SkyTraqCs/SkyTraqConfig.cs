@@ -44,14 +44,14 @@ namespace SkyTraqCs
         internal SkyTraqPackage GetWritePackage()
         {
             var buff = new byte[26];
-            cpy(buff, 1, BitConverter.GetBytes(max_time));
-            cpy(buff, 5, BitConverter.GetBytes(min_time));
-            cpy(buff, 9, BitConverter.GetBytes(max_distance));
-            cpy(buff, 13, BitConverter.GetBytes(min_distance));
-            cpy(buff, 17, BitConverter.GetBytes(max_speed));
-            cpy(buff, 21, BitConverter.GetBytes(min_speed));
-            buff[25] = datalog_enable;
-            buff[26] = log_fifo_mode;
+            cpy(buff, 0, BitConverter.GetBytes(max_time));
+            cpy(buff, 4, BitConverter.GetBytes(min_time));
+            cpy(buff, 8, BitConverter.GetBytes(max_distance));
+            cpy(buff, 12, BitConverter.GetBytes(min_distance));
+            cpy(buff, 16, BitConverter.GetBytes(max_speed));
+            cpy(buff, 20, BitConverter.GetBytes(min_speed));
+            buff[24] = datalog_enable;
+            buff[25] = log_fifo_mode;
 
             return new SkyTraqPackage(SkyTraqCommand.SKYTRAQ_COMMAND_WRITE_CONFIG, buff);
         }

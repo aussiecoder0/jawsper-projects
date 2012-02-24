@@ -32,25 +32,25 @@ namespace SkyTraqCs
 
         public int OutputDisable()
         {
-            return SetOutput(0);
+            return SetOutput(0, false);
         }
         public int OutputEnableNMEA()
         {
-            return SetOutput(1);
+            return SetOutput(1, false);
         }
         public int OutputEnableBinary()
         {
-            return SetOutput(2);
+            return SetOutput(2, false);
         }
 
-        private int SetOutput(byte what)
+        private int SetOutput(byte output_type, bool permanent)
         {
             int success;
 
             var request = new SkyTraqPackage(
                 SkyTraqCommand.SKYTRAQ_COMMAND_CONFIGURE_MESSAGE_TYPE,
-                what, // type
-                0     // 1 = permanent
+                output_type,
+                (byte)(permanent ? 1 : 0)
             );
 
             success = WritePackageWithResponse(request);
@@ -203,6 +203,14 @@ namespace SkyTraqCs
             }
 
             return ERROR;
+        }
+
+        public void ExportDataLog(string filename)
+        {
+            using(var fs = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            {
+                this.ExportDataLog(fs);
+            }
         }
 
         public void ExportDataLog(Stream s)
