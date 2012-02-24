@@ -9,23 +9,21 @@ namespace SkyTraqTester
         static void Main(string[] args)
         {
             var st = new SkyTraq();
-            st.OpenDevice("COM3", 115200);
+            st.OpenDevice("COM3", 38400);
             //st.SetSpeed(38400, false);
             //st.OutputDisable();
             //st.ReadSoftwareVersion();
             SkyTraqConfig cfg;
             st.ReadDataloggerConfig(out cfg);
-            //st.ReadAGPSStatus(ref cfg);
+            st.ReadAGPSStatus(ref cfg);
             //cfg.datalog_enable = 0;
-            st.WriteDataloggerConfig(cfg);
+            //st.WriteDataloggerConfig(cfg);
 
             //st.ClearDatalog();
 
-            using (var fs = new FileStream(string.Format("output-{0:yyyyMMddThhmmss}.bin", DateTime.Now), FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            {
-                st.ExportRawDataLog(fs);
-            }
-
+            //st.OutputDisable();
+            //st.ExportDataLog(string.Format("output-{0:yyyyMMddThhmmss}.txt", DateTime.Now));
+            //st.OutputEnableNMEA();
 
             //st.OutputEnableNMEA();
 
