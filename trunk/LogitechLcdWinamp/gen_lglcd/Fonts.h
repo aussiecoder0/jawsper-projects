@@ -9,21 +9,22 @@ typedef struct
 /*abstract*/ class Font
 {
 protected:
-	int		m_Length;
-	int		m_MaxWidth;
-	int		m_MaxHeight;
-	char*	m_Font[256];
-	int		m_CharWidth[256];
-	int		s_Transl[256];
+	int			m_Length;
+	int			m_MaxWidth;
+	int			m_MaxHeight;
+	wchar_t*	m_Font[256];
+	int			m_CharWidth[256];
+	int			s_Transl[256];
 
 	void Init(int,int);
 	virtual void InitCharset() = 0;
-	void SetChar( char p, char* c );
+	void SetChar( wchar_t p, wchar_t* c );
 
 public:
 	Font();
 	virtual ~Font();
-	char* GetChar( char c, int* w, int* h );
+	wchar_t* GetChar( wchar_t c, int* w, int* h );
+	int MeasureWidth( wchar_t* c );
 };
 
 class Font7x5 : public Font

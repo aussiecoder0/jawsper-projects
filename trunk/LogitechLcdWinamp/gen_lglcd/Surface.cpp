@@ -18,19 +18,19 @@ Surface::~Surface(void)
 	free( m_bmp );
 }
 
-void Surface::SetPixel( int x, int y, byte val )
+void Surface::SetPixel( int x, int y, Pixel val )
 {
 	m_bmp->pixels[ LCD_W * y + x ] = val;
 }
 
-void Surface::Print( Font* a_Font, char* a_String, int x1, int y1, Pixel colour )
+void Surface::Print( Font* a_Font, wchar_t* a_String, int x1, int y1, Pixel colour )
 {
     Pixel* t = m_bmp->pixels + x1 + y1 * LCD_P;
-    for ( int i = 0, n = (int)strlen( a_String ); i < n; ++i )
+    for ( int i = 0, n = (int)wcslen( a_String ); i < n; ++i )
     {
         Pixel* a = t;
         int h, v, cw, ch;
-        char* c = a_Font->GetChar( a_String[i], &cw, &ch );
+        wchar_t* c = a_Font->GetChar( a_String[i], &cw, &ch );
 		for ( v = 0; v < ch; v++ )
 		{
 			for ( h = 0; h < cw; h++ ) 
@@ -103,10 +103,17 @@ void Surface::BoxAbs( int x1, int y1, int x2, int y2, Pixel c )
 	Line( x2, y1, x2, y2, c ); // right
 }
 
+void Surface::Bar( int x1, int y1, int w, int h, Pixel c )
+{
+	for( int y = y1; y <= y1 + h; y++ )
+	{
+		Line( x1, y, x1 + w, y, c );
+	}
+}
 void Surface::BarAbs( int x1, int y1, int x2, int y2, Pixel c )
 {
 	for( int y = y1; y <= y2; y++ )
 	{
-		Line( x1, y, x2, y );
+		Line( x1, y, x2, y, c );
 	}
 }

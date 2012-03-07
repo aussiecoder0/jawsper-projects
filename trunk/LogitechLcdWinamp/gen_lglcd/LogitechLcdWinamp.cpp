@@ -36,10 +36,10 @@ int LogitechLcdWinamp::init( HWND winamp )
 
 void LogitechLcdWinamp::config()
 {
-	MessageBox( m_Winamp, L"I don't want to be configured yet.", L"", MB_OK );
+	MessageBox( m_Winamp, _T("I don't want to be configured yet."), _T(""), MB_OK );
 }
 
 void LogitechLcdWinamp::ShowMessage( LPCTSTR msg )
 {
-	MessageBox( m_Winamp, msg, _T(PLUGIN_NAME), MB_OK );
+	MessageBox( m_Winamp, msg, PLUGIN_NAME, MB_OK );
 }
