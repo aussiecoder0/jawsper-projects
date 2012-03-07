@@ -1,18 +1,11 @@
-// stdafx.h : include file for standard system include files,
-// or project specific include files that are used frequently,
-// but are changed infrequently
-
 #pragma once
-
-#include <windows.h>
-#include <tchar.h>
-#include "LogitechLcdWinamp.h"
 
 // plugin version (don't touch this)
 #define GPPHDR_VER 0x10
 
 // plugin name/title (change this to something you like)
-#define PLUGIN_NAME "Winamp lgLCD display"
+#define PLUGIN_NAME_SB "Winamp lgLCD display"
+#define PLUGIN_NAME _T(PLUGIN_NAME_SB)
  
 // main structure with plugin information, version, name...
 typedef struct

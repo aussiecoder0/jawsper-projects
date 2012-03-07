@@ -1,8 +1,8 @@
-// stdafx.cpp : source file that includes just the standard includes
-// LogitechLcdWinamp.pch will be the pre-compiled header
-// stdafx.obj will contain the pre-compiled type information
+// gen_lglcd.cpp : Defines the exported functions for the DLL application.
+//
 
 #include "stdafx.h"
+#include "gen_lglcd.h"
 
 // these are callback functions/events which will be called by Winamp
 int  init(void);
@@ -14,7 +14,7 @@ void quit(void);
 winampGeneralPurposePlugin plugin =
 {
 	GPPHDR_VER,  // version of the plugin, defined in "gen_myplugin.h"
-	PLUGIN_NAME, // name/title of the plugin, defined in "gen_myplugin.h"
+	PLUGIN_NAME_SB, // name/title of the plugin, defined in "gen_myplugin.h"
 	init,        // function name which will be executed on init event
 	config,      // function name which will be executed on config event
 	quit,        // function name which will be executed on quit event
