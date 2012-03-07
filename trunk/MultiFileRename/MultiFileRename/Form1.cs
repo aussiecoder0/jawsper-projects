@@ -76,8 +76,28 @@ namespace EpisodeRename
                 tb.Tag = f;
                 tb.Text = f.Name;
                 tb.Location = new Point(0, y);
+                tb.KeyDown += new KeyEventHandler(tb_KeyDown);
                 y += 20;
                 panel1.Controls.Add(tb);
+            }
+        }
+
+        void tb_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
+            {
+                var current = sender as TextBox;
+                var tb = panel1.GetNextControl(current, e.KeyCode == Keys.Down)as TextBox;
+                if (tb != null)
+                {
+                    tb.SelectionStart = current.SelectionStart;
+                    tb.Focus();
+                }
+                else
+                {
+                    e.SuppressKeyPress = true;
+                }
+                e.Handled = true;
             }
         }
 
@@ -91,7 +111,7 @@ namespace EpisodeRename
                     var new_name = tb.Text;
                     if (fi.Name.Equals(new_name)) continue;
                     var dir = fi.DirectoryName;
-                    fi.MoveTo(dir + Path.PathSeparator + new_name);
+                    fi.MoveTo(dir + Path.DirectorySeparatorChar + new_name);
                 }
             }
         }

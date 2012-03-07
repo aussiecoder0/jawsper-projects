@@ -57,13 +57,33 @@ namespace jawsper
                             _gnu_long_name = Encoding.ASCII.GetString(file, 0, file.Length);
                             return f;
                     }
-                    if (f.Size > 0) if (f.Type != '0')
+                    if (f.Size > 0)
                     {
-                        var file = ReadFile(f.Size);
-                        string s1 = Encoding.ASCII.GetString(file, 0, file.Length);
-                        int a = 0;
+                        /*
+                         * '0' or (ASCII NUL)	Normal file
+                         * '1'	Hard link
+                         * '2'	Symbolic link
+                         * '3'	Character special
+                         * '4'	Block special
+                         * '5'	Directory
+                         * '6'	FIFO
+                         * '7'	Contiguous file
+                         * 'g'	global extended header with meta data (POSIX.1-2001)
+                         * 'x'	extended header with meta data for the next file in the archive (POSIX.1-2001)
+                         * 'A'–'Z'	Vendor specific extensions (POSIX.1-1988)
+                         * All other values	reserved for future standardization
+                         * */
+                        if (f.Type == 0 || f.Type == '0')
+                        {
+                            SeekFile(f.Size);
+                        }
+                        else
+                        {
+                            var file = ReadFile(f.Size);
+                            string s1 = Encoding.ASCII.GetString(file, 0, file.Length);
+                            int a = 0;
+                        }
                     }
-                    else SeekFile(f.Size);
                     files.Add(f);
 
                     return f;
