@@ -4,13 +4,19 @@
 ScreenManager::ScreenManager(void)
 {
 	m_Initialized = false;
-	m_Texts = new map<TextID,DrawableText*>();
+	m_Texts = new TextMap();
 	m_Surface = new Surface( );
+	m_TimeFont = new Font7x5Time();
 
 	#define make_text(lbl,x,y,w) m_Texts->insert( make_pair( lbl, new DrawableText( x, y, w ) ) )
+	#define make_text_f(lbl,x,y,w,f) m_Texts->insert( make_pair( lbl, new DrawableText( x, y, w, f ) ) )
 	make_text( TXT_ARTIST, 0, 0, LCD_W );
-	make_text( TXT_TITLE, 0, 0, LCD_W );
-	make_text( TXT_ALBUM, 0, 0, LCD_W );
+	make_text( TXT_TITLE, 0, 8, LCD_W );
+	make_text( TXT_ALBUM, 0, 16, LCD_W );
+	make_text_f( TXT_TIME_LEFT, 0, LCD_H - 1 - 6 - 7, LCD_W, m_TimeFont );
+	make_text_f( TXT_TIME_RIGHT, LCD_W - 25, LCD_H - 1 - 6 - 7, 25, m_TimeFont );
+	#undef make_text
+	#undef make_text_f
 
 	DWORD retval;
 
@@ -49,8 +55,6 @@ ScreenManager::ScreenManager(void)
 
 		m_Initialized = true;
 		
-		m_Surface->Print( _T("Hello there"), 0, 0, PIXEL_ON );
-		
 		Update();
 	}
 	else
@@ -67,7 +71,6 @@ ScreenManager::ScreenManager(void)
 
 ScreenManager::~ScreenManager(void)
 {
-	delete m_Surface;
 	if( LGLCD_INVALID_DEVICE != m_Device )
 	{
 		lgLcdClose( m_Device );
@@ -81,7 +84,13 @@ ScreenManager::~ScreenManager(void)
 
 	lgLcdDeInit();
 
+	for( TextMap::iterator iter = m_Texts->begin(); iter != m_Texts->end(); ++iter )
+	{
+		delete iter->second;
+	}
 	delete m_Texts;
+	delete m_Surface;
+	delete m_TimeFont;
 }
 
 
@@ -89,7 +98,7 @@ ScreenManager::~ScreenManager(void)
 
 void ScreenManager::Draw()
 {
-	for( map<TextID,DrawableText*>::const_iterator iter = m_Texts->begin(); iter != m_Texts->end(); iter++ )
+	for( TextMap::const_iterator iter = m_Texts->begin(); iter != m_Texts->end(); iter++ )
 	{
 		iter->second->Draw( m_Surface );
 	}
@@ -107,5 +116,14 @@ void ScreenManager::Update()
 		wchar_t str[MAX_PATH];
 		wsprintf( str, _T("Error %d"), retval );
 		MessageBox( 0, str, PLUGIN_NAME, MB_OK );
+	}
+}
+
+void ScreenManager::SetString( TextID id, wchar_t* str )
+{
+	TextMap::iterator iter = m_Texts->find( id );
+	if( iter != m_Texts->end() )
+	{
+		iter->second->SetText( str );
 	}
 }

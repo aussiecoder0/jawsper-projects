@@ -56,6 +56,9 @@
       <AdditionalLibraryDirectories>lib\x86;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>lglcd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetDir)*.*" "D:\Programming\Winamp\plugins\"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -80,6 +83,7 @@
     <ClInclude Include="Fonts.h" />
     <ClInclude Include="gen_lglcd.h" />
     <ClInclude Include="inc\lglcd.h" />
+    <ClInclude Include="inc\wa_ipc.h" />
     <ClInclude Include="LogitechLcdWinamp.h" />
     <ClInclude Include="ScreenManager.h" />
     <ClInclude Include="stdafx.h" />

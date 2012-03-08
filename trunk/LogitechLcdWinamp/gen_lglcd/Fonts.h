@@ -1,22 +1,31 @@
 #pragma once
 
-typedef struct
+#include <map>
+
+using namespace std;
+
+class FontChar
 {
-	char c;
-	char* def;
-} FontDef;
+public:
+	FontChar(wchar_t ac, wchar_t* ad, int max_height);
+	~FontChar();
+	wchar_t c;
+	wchar_t* d;
+	int w;
+};
+
+typedef map<wchar_t,FontChar*> FontMap;
 
 /*abstract*/ class Font
 {
 protected:
-	int			m_Length;
 	int			m_MaxWidth;
 	int			m_MaxHeight;
-	wchar_t*	m_Font[256];
-	int			m_CharWidth[256];
+	FontMap*	m_Font;
+	//int			m_CharWidth[256];
 	int			s_Transl[256];
 
-	void Init(int,int);
+	void Init(int);
 	virtual void InitCharset() = 0;
 	void SetChar( wchar_t p, wchar_t* c );
 
@@ -31,5 +40,12 @@ class Font7x5 : public Font
 {
 	void InitCharset();
 public:
-	Font7x5() : Font() { Init(256, 7); };
+	Font7x5() : Font() { Init(7); };
+};
+
+class Font7x5Time : public Font
+{
+	void InitCharset();
+public:
+	Font7x5Time() : Font() { Init(7); };
 };
