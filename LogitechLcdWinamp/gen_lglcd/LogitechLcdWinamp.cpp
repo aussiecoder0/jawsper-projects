@@ -4,39 +4,47 @@
 
 #include "LogitechLcdWinamp.h"
 
-/* static */ LogitechLcdWinamp* LogitechLcdWinamp::s_instance = 0;
+/* static */ LogitechLcdWinamp* LogitechLcdWinamp::s_Instance = 0;
 
 /* static */ LogitechLcdWinamp* LogitechLcdWinamp::getInstance()
 {
-	if( LogitechLcdWinamp::s_instance == 0 )
+	if( LogitechLcdWinamp::s_Instance == 0 )
 	{
-		LogitechLcdWinamp::s_instance = new LogitechLcdWinamp();
+		LogitechLcdWinamp::s_Instance = new LogitechLcdWinamp();
 	}
-	return LogitechLcdWinamp::s_instance;
+	return LogitechLcdWinamp::s_Instance;
 }
 
 /* static */ void LogitechLcdWinamp::deleteInstance()
 {
-	delete LogitechLcdWinamp::s_instance;
+	delete LogitechLcdWinamp::s_Instance;
 }
 
 
 LogitechLcdWinamp::~LogitechLcdWinamp()
 {
-	delete m_screenManager;
-	//MessageBox(0, L"Quit event triggered for gen_myplugin.", L"", MB_OK);
+	delete m_ScreenManager;
+	//ShowMessage( _T("Quit event triggered for gen_myplugin." );
 }
 
 int LogitechLcdWinamp::init( HWND winamp )
 {
 	m_Winamp = winamp;
-	m_screenManager = new ScreenManager();
+	m_ScreenManager = new ScreenManager();
+
+	m_ScreenManager->SetString( TXT_ARTIST, _T("Artist") );
+	m_ScreenManager->SetString( TXT_TITLE, _T("Title") );
+	m_ScreenManager->SetString( TXT_ALBUM, _T("Album") );
+	m_ScreenManager->SetString( TXT_TIME_LEFT, _T("00:00") );
+	m_ScreenManager->SetString( TXT_TIME_RIGHT, _T("12:34") );
+
+	m_ScreenManager->Update();
 	return 0;
 }
 
 void LogitechLcdWinamp::config()
 {
-	MessageBox( m_Winamp, _T("I don't want to be configured yet."), _T(""), MB_OK );
+	ShowMessage( _T("I don't want to be configured yet.") );
 }
 
 void LogitechLcdWinamp::ShowMessage( LPCTSTR msg )

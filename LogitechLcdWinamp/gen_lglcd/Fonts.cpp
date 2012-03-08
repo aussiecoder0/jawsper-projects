@@ -1,39 +1,58 @@
 #include "Stdafx.h"
 #include "Fonts.h"
 
+FontChar::FontChar(wchar_t ac, wchar_t* ad, int max_height)
+{
+	c = ac;
+	size_t l = wcslen( ad );
+	w = l / max_height;
+	if( w > 0 )
+	{
+		d = new wchar_t[l];
+		memcpy( d, ad, l * sizeof(wchar_t) );
+	}
+	else d = 0;
+}
 
+FontChar::~FontChar()
+{
+	if( d != 0 ) delete[] d;
+}
 
 Font::Font() : m_MaxWidth(5)
 {
+	m_Font = new FontMap();
 }
 
-void Font::Init( int l, int h )
+void Font::Init( int h )
 {
-	m_Length = l;
 	m_MaxHeight = h;
 	InitCharset();
 }
 
 Font::~Font()
 {
-	for( int i = 0; i < 256; i++ )
-		delete[] m_Font[i];
+	for( FontMap::iterator iter = m_Font->begin(); iter != m_Font->end(); iter++ )
+	{
+		delete iter->second;
+	}
+	delete m_Font;
 }
 
 wchar_t* Font::GetChar( wchar_t c, int* w, int* h )
 {
+	if( c > 255 ) c = _T(' ');
 	wchar_t p = s_Transl[c];
-	*w = m_CharWidth[p];
+	FontChar* chr = (*m_Font)[p];
+	*w = chr->w;
 	*h = m_MaxHeight;
-	return m_Font[p];
+	return chr->d;
 }
 
 void Font::SetChar( wchar_t p, wchar_t* c )
 {
-	int l = wcslen( c );
-	m_CharWidth[p] = l / m_MaxHeight;
-	m_Font[p] = new wchar_t[l];
-	memcpy( m_Font[p], c, l );
+	FontChar* el = new FontChar( p, c, m_MaxHeight );
+	m_Font->insert( make_pair( p, el ) );
 	s_Transl[ p ] = p;
 }
 
@@ -45,9 +64,9 @@ int Font::MeasureWidth( wchar_t* str )
 		int w, h;
 		GetChar( str[i], &w, &h );
 		total += w;
-		total++;
+		total++; // add spacer
 	}
-	total--;
+	total--; // remove final spacer
 	return total;
 }
 
@@ -58,7 +77,7 @@ void Font7x5::InitCharset()
 	for(int i = 0; i < 256; i++ ) s_Transl[i] = 0;
 
 
-	SetChar( 0,   L"o:o"   L":o:"   L"o:o"   L":o:"   L"o:o"   L":o:"   L"o:o"   );
+	SetChar( 0,   L""      L""      L""      L""      L""      L""      L""      );
 	SetChar( 1,   L":"     L":"     L":"     L":"     L":"     L":"     L":"     );
 	SetChar( 2,   L"::"    L"::"    L"::"    L"::"    L"::"    L"::"    L"::"    );
 	SetChar( 3,   L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   );
@@ -152,7 +171,7 @@ void Font7x5::InitCharset()
 	SetChar( 'q', L"::::"  L"::::"  L":ooo"  L"o::o"  L":ooo"  L":::o"  L"::::"  );
 	SetChar( 'r', L"::"    L"::"    L"oo"    L"o:"    L"o:"    L"o:"    L"::"    );
 	SetChar( 's', L":::"   L":::"   L":oo"   L"o::"   L"::o"   L"oo:"   L":::"   );
-	SetChar( 't', L"::"    L"::"    L"o:"    L"oo"    L"o:"    L"o:"    L":o"    );
+	SetChar( 't', L"::"    L"o:"    L"oo"    L"o:"    L"o:"    L":o"    L"::"    );
 	SetChar( 'u', L":::"   L":::"   L"o:o"   L"o:o"   L"o:o"   L":oo"   L":::"   );
 	SetChar( 'v', L":::"   L":::"   L"o:o"   L"o:o"   L":o:"   L":o:"   L":::"   );
 	SetChar( 'w', L":::::" L":::::" L"o:o:o" L"o:o:o" L":o:o:" L":o:o:" L":::::" );
@@ -163,4 +182,19 @@ void Font7x5::InitCharset()
 	SetChar( '|', L":"     L"o"     L"o"     L"o"     L"o"     L"o"     L":"     );
 	SetChar( '}', L":::"   L"oo:"   L":o:"   L":oo"   L":o:"   L"oo:"   L":::"   );
 	SetChar( '~', L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   );
+}
+
+void Font7x5Time::InitCharset()
+{
+	SetChar( ':', L":"     L":"     L"o"     L":"     L"o"     L":"     L":"     );
+	SetChar( '1', L":::::" L"::o::" L":oo::" L"::o::" L"::o::" L":ooo:" L":::::" );
+	SetChar( '2', L":::::" L":ooo:" L"o:::o" L"::oo:" L":o:::" L"ooooo" L":::::"  );
+	SetChar( '3', L":::::" L"oooo:" L"::::o" L"::oo:" L"::::o" L"oooo:" L":::::"  );
+	SetChar( '4', L":::::" L"o::::" L"o::o:" L"ooooo" L":::o:" L":::o:" L":::::"  );
+	SetChar( '5', L":::::" L"ooooo" L"o::::" L"oooo:" L"::::o" L"oooo:" L":::::"  );
+	SetChar( '6', L":::::" L":oooo" L"o::::" L"oooo:" L"o:::o" L":ooo:" L":::::"  );
+	SetChar( '7', L":::::" L"ooooo" L"::::o" L":::o:" L"::o::" L"::o::" L":::::"  );
+	SetChar( '8', L":::::" L":ooo:" L"o:::o" L":ooo:" L"o:::o" L":ooo:" L":::::"  );
+	SetChar( '9', L":::::" L":ooo:" L"o:::o" L":oooo" L"::::o" L":ooo:" L":::::"  );
+	SetChar( '0', L":::::" L":ooo:" L"o::oo" L"o:o:o" L"oo::o" L":ooo:" L":::::"  );
 }

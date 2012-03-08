@@ -27,8 +27,8 @@ public:
 
 	void Clear( Pixel colour = PIXEL_OFF ) { memset( m_bmp->pixels, colour, LCD_SIZE ); }
 	void SetPixel(int,int,Pixel);
-	void Print( wchar_t* str, int x, int y, Pixel colour = PIXEL_ON ) { Print( m_Font, str, x, y, colour ); }
-	void Print( Font*, wchar_t* , int, int, Pixel colour = PIXEL_ON );
+	void Print( wchar_t* str, int x, int y, Pixel colour = PIXEL_ON ) { Print( str, x, y, m_Font, colour ); }
+	void Print(  wchar_t* a_String, int x1, int y1, Font* a_Font, Pixel colour = PIXEL_ON, int max_x = LCD_W-1 );
 
     void Line( int x1, int y1, int x2, int y2, Pixel c = PIXEL_ON );
     void Line( float x1, float y1, float x2, float y2, Pixel c = PIXEL_ON );

@@ -23,9 +23,11 @@ void Surface::SetPixel( int x, int y, Pixel val )
 	m_bmp->pixels[ LCD_W * y + x ] = val;
 }
 
-void Surface::Print( Font* a_Font, wchar_t* a_String, int x1, int y1, Pixel colour )
+void Surface::Print( wchar_t* a_String, int x1, int y1, Font* a_Font, Pixel colour, int max_x )
 {
+	if( a_Font == 0 ) a_Font = m_Font;
     Pixel* t = m_bmp->pixels + x1 + y1 * LCD_P;
+	int xpos = x1;
     for ( int i = 0, n = (int)wcslen( a_String ); i < n; ++i )
     {
         Pixel* a = t;
@@ -33,9 +35,9 @@ void Surface::Print( Font* a_Font, wchar_t* a_String, int x1, int y1, Pixel colo
         wchar_t* c = a_Font->GetChar( a_String[i], &cw, &ch );
 		for ( v = 0; v < ch; v++ )
 		{
-			for ( h = 0; h < cw; h++ ) 
+			for ( h = 0; h < cw && xpos + h < max_x; h++ )
 			{
-				if (*c++ == 'o')
+				if (*c++ == _T('o'))
 				{
 					*(a + h) = colour;//, *(a + h + LCD_P) = 0;
 				}
@@ -43,6 +45,7 @@ void Surface::Print( Font* a_Font, wchar_t* a_String, int x1, int y1, Pixel colo
 			a += LCD_P;
 		}
         t += cw + 1;
+		xpos += cw + 1;
     }
 }
 

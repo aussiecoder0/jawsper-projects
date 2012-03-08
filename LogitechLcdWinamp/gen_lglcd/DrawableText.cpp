@@ -14,6 +14,6 @@ void DrawableText::Draw( Surface* a_Surface )
 		m_Changed = false;
 		w = min( mw, a_Surface->GetFont()->MeasureWidth( str ) );
 		a_Surface->Bar( x, y, x + w - 1, y + 6, PIXEL_OFF );
-		a_Surface->Print( str, x, y, PIXEL_ON );
+		a_Surface->Print( str, x, y, m_Font, PIXEL_ON, x + mw );
 	}
 }

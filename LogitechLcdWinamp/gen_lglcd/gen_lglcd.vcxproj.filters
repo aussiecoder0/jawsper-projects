@@ -45,6 +45,9 @@
     <ClInclude Include="inc\lglcd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\wa_ipc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
