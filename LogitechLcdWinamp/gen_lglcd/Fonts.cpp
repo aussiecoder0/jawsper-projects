@@ -1,27 +1,28 @@
 #include "Stdafx.h"
 #include "Fonts.h"
 
-FontChar::FontChar(wchar_t ac, wchar_t* ad, int max_height)
+FontChar::FontChar(wchar_t a_Char, wchar_t* a_Data, int max_height)
 {
-	c = ac;
-	size_t l = wcslen( ad );
-	w = l / max_height;
-	if( w > 0 )
+	m_Char = a_Char;
+	size_t len = wcslen( a_Data );
+	m_Width = len / max_height;
+	if( m_Width > 0 )
 	{
-		d = new wchar_t[l];
-		memcpy( d, ad, l * sizeof(wchar_t) );
+		m_Data = new wchar_t[ len ];
+		memcpy( m_Data, a_Data, len * sizeof(wchar_t) );
 	}
-	else d = 0;
+	else m_Data = 0;
 }
 
 FontChar::~FontChar()
 {
-	if( d != 0 ) delete[] d;
+	if( m_Data != 0 ) delete[] m_Data;
 }
 
 Font::Font() : m_MaxWidth(5)
 {
 	m_Font = new FontMap();
+	m_FontRemap = new FontRemap();
 }
 
 void Font::Init( int h )
@@ -37,23 +38,41 @@ Font::~Font()
 		delete iter->second;
 	}
 	delete m_Font;
+	delete m_FontRemap;
 }
 
-wchar_t* Font::GetChar( wchar_t c, int* w, int* h )
+wchar_t* Font::GetChar( wchar_t c, int& w, int& h )
 {
-	if( c > 255 ) c = _T(' ');
-	wchar_t p = s_Transl[c];
-	FontChar* chr = (*m_Font)[p];
-	*w = chr->w;
-	*h = m_MaxHeight;
-	return chr->d;
+	FontMap::const_iterator it = m_Font->find( c );
+	if( it == m_Font->end() )
+	{
+		FontRemap::const_iterator re_it = m_FontRemap->find(c);
+		if( re_it != m_FontRemap->end() )
+		{
+			it = m_Font->find( re_it->second );
+			if( it == m_Font->end() )
+				it = m_Font->begin();
+		}
+		else
+		{
+			it = m_Font->begin();
+		}
+	}
+	FontChar* chr = it->second;
+	w = chr->m_Width;
+	h = m_MaxHeight;
+	return chr->m_Data;
 }
 
 void Font::SetChar( wchar_t p, wchar_t* c )
 {
 	FontChar* el = new FontChar( p, c, m_MaxHeight );
 	m_Font->insert( make_pair( p, el ) );
-	s_Transl[ p ] = p;
+}
+
+void Font::SetChar( wchar_t from, wchar_t to )
+{
+	m_FontRemap->insert( make_pair( from, to ) );
 }
 
 int Font::MeasureWidth( wchar_t* str )
@@ -62,7 +81,7 @@ int Font::MeasureWidth( wchar_t* str )
 	for( int i = 0, n = wcslen( str ); i < n; ++i )
 	{
 		int w, h;
-		GetChar( str[i], &w, &h );
+		GetChar( str[i], w, h );
 		total += w;
 		total++; // add spacer
 	}
@@ -74,9 +93,6 @@ int Font::MeasureWidth( wchar_t* str )
 
 void Font7x5::InitCharset()
 {
-	for(int i = 0; i < 256; i++ ) s_Transl[i] = 0;
-
-
 	SetChar( 0,   L""      L""      L""      L""      L""      L""      L""      );
 	SetChar( 1,   L":"     L":"     L":"     L":"     L":"     L":"     L":"     );
 	SetChar( 2,   L"::"    L"::"    L"::"    L"::"    L"::"    L"::"    L"::"    );
@@ -84,117 +100,151 @@ void Font7x5::InitCharset()
 	SetChar( 4,   L"::::"  L"::::"  L"::::"  L"::::"  L"::::"  L"::::"  L"::::"  );
 	SetChar( 5,   L":::::" L":::::" L":::::" L":::::" L":::::" L":::::" L":::::" );
 
-	SetChar( ' ', L"::"    L"::"    L"::"    L"::"    L"::"    L"::"    L"::"    );
-	SetChar( '!', L":"     L"o"     L"o"     L"o"     L":"     L"o"     L":"     );
-	SetChar( '\"',L":::"   L"o:o"   L"o:o"   L":::"   L":::"   L":::"   L":::"   );
-	SetChar( '#', L":::::" L":o:o:" L"ooooo" L":o:o:" L"ooooo" L":o:o:" L":::::" );
-	SetChar( '$', L":::::" L":oooo" L"o:o::" L":ooo:" L"::o:o" L"oooo:" L":::::" );
-	SetChar( '%', L":::::" L":o:o:" L"ooooo" L":o:o:" L"ooooo" L":o:o:" L":::::" );
-	SetChar( '&', L":::::" L":oo::" L":o:::" L":oo::" L"o::o:" L":oo:o" L":::::" );
-	SetChar( '\'',L":"     L"o"     L"o"     L":"     L":"     L":"     L":"     );
-	SetChar( '(', L"::"    L":o"    L"o:"    L"o:"    L"o:"    L":o"    L"::"    );
-	SetChar( ')', L"::"    L"o:"    L":o"    L":o"    L":o"    L"o:"    L"::"    );
-	SetChar( '*', L":::::" L"o:o:o" L":ooo:" L"ooooo" L":ooo:" L"o:o:o" L":::::" );
-	SetChar( '+', L":::"   L":::"   L":o:"   L"ooo"   L":o:"   L":::"   L":::"   );
-	SetChar( ',', L"::"    L"::"    L"::"    L"::"    L":o"    L"o:"    L"::"    );
-	SetChar( '-', L":::"   L":::"   L":::"   L"ooo"   L":::"   L":::"   L":::"   );
-	SetChar( '.', L":"     L":"     L":"     L":"     L":"     L"o"     L":"     );
-	SetChar( '/', L":::"   L"::o"   L"::o"   L":o:"   L"o::"   L"o::"   L":::"   );
-	SetChar( '1', L":::"   L":o:"   L"oo:"   L":o:"   L":o:"   L"ooo"   L":::"   );
-	SetChar( '2', L"::::"  L":oo:"  L"o::o"  L"::o:"  L":o::"  L"oooo"  L"::::"  );
-	SetChar( '3', L":::"   L"oo:"   L"::o"   L":oo"   L"::o"   L"oo:"   L":::"   );
-	SetChar( '4', L"::::"  L"::o:"  L":oo:"  L"o:o:"  L"oooo"  L"::o:"  L"::::"  );
-	SetChar( '5', L":::"   L"ooo"   L"o::"   L"oo:"   L"::o"   L"oo:"   L":::"   );
-	SetChar( '6', L":::"   L":oo"   L"o::"   L"ooo"   L"o:o"   L":o:"   L":::"   );
-	SetChar( '7', L":::"   L"ooo"   L"::o"   L":o:"   L":o:"   L":o:"   L":::"   );
-	SetChar( '8', L"::::"  L":oo:"  L"o::o"  L":oo:"  L"o::o"  L":oo:"  L"::::"  );
-	SetChar( '9', L"::::"  L":oo:"  L"o::o"  L":ooo"  L":::o"  L"ooo:"  L"::::"  );
-	SetChar( '0', L"::::"  L":oo:"  L"o::o"  L"o::o"  L"o::o"  L":oo:"  L"::::"  );
-	SetChar( ':', L":"     L":"     L"o"     L":"     L"o"     L":"     L":"     );
-	SetChar( ';', L"::"    L"::"    L":o"    L"::"    L":o"    L"o:"    L"::"    );
-	SetChar( '<', L":::"   L"::o"   L":o:"   L"o::"   L":o:"   L"::o"   L":::"   );
-	SetChar( '=', L":::"   L":::"   L"ooo"   L":::"   L"ooo"   L":::"   L":::"   );
-	SetChar( '>', L":::"   L"o::"   L":o:"   L"::o"   L":o:"   L"o::"   L":::"   );
-	SetChar( '?', L"::::"  L":oo:"  L"o::o"  L"::o:"  L"::::"  L"::o:"  L"::::"  );
+	SetChar( L' ', L"::"    L"::"    L"::"    L"::"    L"::"    L"::"    L"::"    );
+	SetChar( L'!', L":"     L"o"     L"o"     L"o"     L":"     L"o"     L":"     );
+	SetChar( L'\"',L":::"   L"o:o"   L"o:o"   L":::"   L":::"   L":::"   L":::"   );
+	SetChar( L'#', L":::::" L":o:o:" L"ooooo" L":o:o:" L"ooooo" L":o:o:" L":::::" );
+	SetChar( L'$', L":::::" L":oooo" L"o:o::" L":ooo:" L"::o:o" L"oooo:" L":::::" );
+	SetChar( L'%', L":::::" L":o:o:" L"ooooo" L":o:o:" L"ooooo" L":o:o:" L":::::" );
+	SetChar( L'&', L":::::" L":oo::" L":o:::" L":oo::" L"o::o:" L":oo:o" L":::::" );
+	SetChar( L'\'',L":"     L"o"     L"o"     L":"     L":"     L":"     L":"     );
+	SetChar( L'(', L"::"    L":o"    L"o:"    L"o:"    L"o:"    L":o"    L"::"    );
+	SetChar( L')', L"::"    L"o:"    L":o"    L":o"    L":o"    L"o:"    L"::"    );
+	SetChar( L'*', L":::::" L"o:o:o" L":ooo:" L"ooooo" L":ooo:" L"o:o:o" L":::::" );
+	SetChar( L'+', L":::"   L":::"   L":o:"   L"ooo"   L":o:"   L":::"   L":::"   );
+	SetChar( L',', L"::"    L"::"    L"::"    L"::"    L":o"    L"o:"    L"::"    );
+	SetChar( L'-', L":::"   L":::"   L":::"   L"ooo"   L":::"   L":::"   L":::"   );
+	SetChar( L'.', L":"     L":"     L":"     L":"     L":"     L"o"     L":"     );
+	SetChar( L'/', L":::"   L"::o"   L"::o"   L":o:"   L"o::"   L"o::"   L":::"   );
+	SetChar( L'1', L":::"   L":o:"   L"oo:"   L":o:"   L":o:"   L"ooo"   L":::"   );
+	SetChar( L'2', L"::::"  L":oo:"  L"o::o"  L"::o:"  L":o::"  L"oooo"  L"::::"  );
+	SetChar( L'3', L":::"   L"oo:"   L"::o"   L":oo"   L"::o"   L"oo:"   L":::"   );
+	SetChar( L'4', L"::::"  L"::o:"  L":oo:"  L"o:o:"  L"oooo"  L"::o:"  L"::::"  );
+	SetChar( L'5', L":::"   L"ooo"   L"o::"   L"oo:"   L"::o"   L"oo:"   L":::"   );
+	SetChar( L'6', L":::"   L":oo"   L"o::"   L"ooo"   L"o:o"   L":o:"   L":::"   );
+	SetChar( L'7', L":::"   L"ooo"   L"::o"   L":o:"   L":o:"   L":o:"   L":::"   );
+	SetChar( L'8', L"::::"  L":oo:"  L"o::o"  L":oo:"  L"o::o"  L":oo:"  L"::::"  );
+	SetChar( L'9', L"::::"  L":oo:"  L"o::o"  L":ooo"  L":::o"  L"ooo:"  L"::::"  );
+	SetChar( L'0', L"::::"  L":oo:"  L"o::o"  L"o::o"  L"o::o"  L":oo:"  L"::::"  );
+	SetChar( L':', L":"     L":"     L"o"     L":"     L"o"     L":"     L":"     );
+	SetChar( L';', L"::"    L"::"    L":o"    L"::"    L":o"    L"o:"    L"::"    );
+	SetChar( L'<', L":::"   L"::o"   L":o:"   L"o::"   L":o:"   L"::o"   L":::"   );
+	SetChar( L'=', L":::"   L":::"   L"ooo"   L":::"   L"ooo"   L":::"   L":::"   );
+	SetChar( L'>', L":::"   L"o::"   L":o:"   L"::o"   L":o:"   L"o::"   L":::"   );
+	SetChar( L'?', L"::::"  L":oo:"  L"o::o"  L"::o:"  L"::::"  L"::o:"  L"::::"  );
 
-	SetChar( '@', L":::::" L":ooo:" L"o:::o" L"o:ooo" L"o:o:o" L"::ooo" L":::::" );
-	SetChar( 'A', L"::::"  L":oo:"  L"o::o"  L"oooo"  L"o::o"  L"o::o"  L"::::"  );
-	SetChar( 'B', L"::::"  L"ooo:"  L"o::o"  L"ooo:"  L"o::o"  L"ooo:"  L"::::"  );
-	SetChar( 'C', L":::"   L":oo"   L"o::"   L"o::"   L"o::"   L":oo"   L":::"   );
-	SetChar( 'D', L"::::"  L"ooo:"  L"o::o"  L"o::o"  L"o::o"  L"ooo:"  L"::::"  );
-	SetChar( 'E', L":::"   L"ooo"   L"o::"   L"oo:"   L"o::"   L"ooo"   L":::"   );
-	SetChar( 'F', L":::"   L"ooo"   L"o::"   L"oo:"   L"o::"   L"o::"   L":::"   );
-	SetChar( 'G', L"::::"  L":ooo"  L"o:::"  L"o:oo"  L"o::o"  L":oo:"  L"::::"  );
-	SetChar( 'H', L"::::"  L"o::o"  L"o::o"  L"oooo"  L"o::o"  L"o::o"  L"::::"  );
-	SetChar( 'I', L":::"   L"ooo"   L":o:"   L":o:"   L":o:"   L"ooo"   L":::"   );
-	SetChar( 'J', L":::"   L"::o"   L"::o"   L"::o"   L"::o"   L"oo:"   L":::"   );
-	SetChar( 'K', L"::::"  L"o::o"  L"o:o:"  L"oo::"  L"o:o:"  L"o::o"  L"::::"  );
-	SetChar( 'L', L":::"   L"o::"   L"o::"   L"o::"   L"o::"   L"ooo"   L":::"   );
-	SetChar( 'M', L":::::" L"oo:o:" L"o:o:o" L"o:o:o" L"o:::o" L"o:::o" L":::::" );
-	SetChar( 'N', L":::::" L"oo::o" L"oo::o" L"o:o:o" L"o::oo" L"o::oo" L":::::" );
-	SetChar( 'O', L"::::"  L":oo:"  L"o::o"  L"o::o"  L"o::o"  L":oo:"  L"::::"  );
-	SetChar( 'P', L"::::"  L"ooo:"  L"o::o"  L"ooo:"  L"o:::"  L"o:::"  L"::::"  );
-	SetChar( 'Q', L"::::"  L":oo:"  L"o::o"  L"o::o"  L"o:oo"  L":ooo"  L"::::"  );
-	SetChar( 'R', L"::::"  L"ooo:"  L"o::o"  L"ooo:"  L"o:o:"  L"o::o"  L"::::"  );
-	SetChar( 'S', L"::::"  L":ooo"  L"o:::"  L":oo:"  L":::o"  L"ooo:"  L"::::"  );
-	SetChar( 'T', L":::"   L"ooo"   L":o:"   L":o:"   L":o:"   L":o:"   L":::"   );
-	SetChar( 'U', L"::::"  L"o::o"  L"o::o"  L"o::o"  L"o::o"  L":ooo"  L"::::"  );
-	SetChar( 'V', L":::::" L"o:::o" L"o:::o" L":o:o:" L":o:o:" L"::o::" L":::::" );
-	SetChar( 'W', L":::::" L"o:::o" L"o:::o" L"o:o:o" L"o:o:o" L":o:o:" L":::::" );
-	SetChar( 'X', L":::::" L"o:::o" L":o:o:" L"::o::" L":o:o:" L"o:::o" L":::::" );
-	SetChar( 'Y', L"::::"  L"o::o"  L"o::o"  L":ooo"  L":::o"  L":oo:"  L"::::"  );
-	SetChar( 'Z', L":::::" L"ooooo" L":::o:" L"::o::" L":o:::" L"ooooo" L":::::" );
-	SetChar( '[', L"::"    L"oo"    L"o:"    L"o:"    L"o:"    L"oo"    L"::"    );
-	SetChar( '\\',L":::"   L"o::"   L"o::"   L":o:"   L"::o"   L"::o"   L":::"   );
-	SetChar( ']', L"::"    L"oo"    L":o"    L":o"    L":o"    L"oo"    L"::"    );
-	SetChar( '^', L":::"   L":o:"   L"o:o"   L":::"   L":::"   L":::"   L":::"   );
-	SetChar( '_', L":::"   L":::"   L":::"   L":::"   L":::"   L"ooo"   L":::"   );
+	SetChar( L'@', L":::::" L":ooo:" L"o:::o" L"o:ooo" L"o:o:o" L"::ooo" L":::::" );
+	SetChar( L'A', L"::::"  L":oo:"  L"o::o"  L"oooo"  L"o::o"  L"o::o"  L"::::"  );
+	SetChar( L'B', L"::::"  L"ooo:"  L"o::o"  L"ooo:"  L"o::o"  L"ooo:"  L"::::"  );
+	SetChar( L'C', L":::"   L":oo"   L"o::"   L"o::"   L"o::"   L":oo"   L":::"   );
+	SetChar( L'D', L"::::"  L"ooo:"  L"o::o"  L"o::o"  L"o::o"  L"ooo:"  L"::::"  );
+	SetChar( L'E', L":::"   L"ooo"   L"o::"   L"oo:"   L"o::"   L"ooo"   L":::"   );
+	SetChar( L'F', L":::"   L"ooo"   L"o::"   L"oo:"   L"o::"   L"o::"   L":::"   );
+	SetChar( L'G', L"::::"  L":ooo"  L"o:::"  L"o:oo"  L"o::o"  L":oo:"  L"::::"  );
+	SetChar( L'H', L"::::"  L"o::o"  L"o::o"  L"oooo"  L"o::o"  L"o::o"  L"::::"  );
+	SetChar( L'I', L":::"   L"ooo"   L":o:"   L":o:"   L":o:"   L"ooo"   L":::"   );
+	SetChar( L'J', L":::"   L"::o"   L"::o"   L"::o"   L"::o"   L"oo:"   L":::"   );
+	SetChar( L'K', L"::::"  L"o::o"  L"o:o:"  L"oo::"  L"o:o:"  L"o::o"  L"::::"  );
+	SetChar( L'L', L":::"   L"o::"   L"o::"   L"o::"   L"o::"   L"ooo"   L":::"   );
+	SetChar( L'M', L":::::" L"oo:o:" L"o:o:o" L"o:o:o" L"o:::o" L"o:::o" L":::::" );
+	SetChar( L'N', L":::::" L"oo::o" L"oo::o" L"o:o:o" L"o::oo" L"o::oo" L":::::" );
+	SetChar( L'O', L"::::"  L":oo:"  L"o::o"  L"o::o"  L"o::o"  L":oo:"  L"::::"  );
+	SetChar( L'P', L"::::"  L"ooo:"  L"o::o"  L"ooo:"  L"o:::"  L"o:::"  L"::::"  );
+	SetChar( L'Q', L"::::"  L":oo:"  L"o::o"  L"o::o"  L"o:oo"  L":ooo"  L"::::"  );
+	SetChar( L'R', L"::::"  L"ooo:"  L"o::o"  L"ooo:"  L"o:o:"  L"o::o"  L"::::"  );
+	SetChar( L'S', L"::::"  L":ooo"  L"o:::"  L":oo:"  L":::o"  L"ooo:"  L"::::"  );
+	SetChar( L'T', L":::"   L"ooo"   L":o:"   L":o:"   L":o:"   L":o:"   L":::"   );
+	SetChar( L'U', L"::::"  L"o::o"  L"o::o"  L"o::o"  L"o::o"  L":ooo"  L"::::"  );
+	SetChar( L'V', L":::::" L"o:::o" L"o:::o" L":o:o:" L":o:o:" L"::o::" L":::::" );
+	SetChar( L'W', L":::::" L"o:::o" L"o:::o" L"o:o:o" L"o:o:o" L":o:o:" L":::::" );
+	SetChar( L'X', L":::::" L"o:::o" L":o:o:" L"::o::" L":o:o:" L"o:::o" L":::::" );
+	SetChar( L'Y', L"::::"  L"o::o"  L"o::o"  L":ooo"  L":::o"  L":oo:"  L"::::"  );
+	SetChar( L'Z', L":::::" L"ooooo" L":::o:" L"::o::" L":o:::" L"ooooo" L":::::" );
+	SetChar( L'[', L"::"    L"oo"    L"o:"    L"o:"    L"o:"    L"oo"    L"::"    );
+	SetChar( L'\\',L":::"   L"o::"   L"o::"   L":o:"   L"::o"   L"::o"   L":::"   );
+	SetChar( L']', L"::"    L"oo"    L":o"    L":o"    L":o"    L"oo"    L"::"    );
+	SetChar( L'^', L":::"   L":o:"   L"o:o"   L":::"   L":::"   L":::"   L":::"   );
+	SetChar( L'_', L":::"   L":::"   L":::"   L":::"   L":::"   L"ooo"   L":::"   );
 	
-	SetChar( '`', L"::"    L"o:"    L":o"    L"::"    L"::"    L"::"    L"::"    );
-	SetChar( 'a', L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   );
-	SetChar( 'a', L":::"   L":::"   L"oo:"   L"::o"   L"o:o"   L":oo"   L":::"   );
-	SetChar( 'b', L"::::"  L"o:::"  L"ooo:"  L"o::o"  L"o::o"  L"ooo:"  L"::::"  );
-	SetChar( 'c', L":::"   L":::"   L":oo"   L"o::"   L"o::"   L":oo"   L":::"   );
-	SetChar( 'd', L"::::"  L":::o"  L":ooo"  L"o::o"  L"o::o"  L":ooo"  L"::::"  );
-	SetChar( 'e', L":::"   L":::"   L":o:"   L"o:o"   L"o::"   L":oo"   L":::"   );
-	SetChar( 'f', L"::"    L":o"    L"o:"    L"oo"    L"o:"    L"o:"    L"::"    );
-	SetChar( 'g', L"::::"  L"::::"  L":ooo"  L"o::o"  L":ooo"  L":::o"  L"ooo:"  );
-	SetChar( 'h', L":::"   L"o::"   L"o::"   L"oo:"   L"o:o"   L"o:o"   L":::"   );
-	SetChar( 'i', L":"     L"o"     L":"     L"o"     L"o"     L"o"     L":"     );
-	SetChar( 'j', L":::"   L"::o"   L":::"   L"::o"   L"::o"   L"oo:"   L":::"   );
-	SetChar( 'k', L":::"   L"o::"   L"o:o"   L"oo:"   L"o:o"   L"o:o"   L":::"   );
-	SetChar( 'l', L":"     L"o"     L"o"     L"o"     L"o"     L"o"     L":"     );
-	SetChar( 'm', L":::::" L":::::" L"oooo:" L"o:o:o" L"o:o:o" L"o:o:o" L":::::" );
-	SetChar( 'n', L":::"   L":::"   L"oo:"   L"o:o"   L"o:o"   L"o:o"   L":::"   );
-	SetChar( 'o', L"::::"  L"::::"  L":oo:"  L"o::o"  L"o::o"  L":oo:"  L"::::"  );
-	SetChar( 'p', L"::::"  L"::::"  L"ooo:"  L"o::o"  L"ooo:"  L"o:::"  L"::::"  );
-	SetChar( 'q', L"::::"  L"::::"  L":ooo"  L"o::o"  L":ooo"  L":::o"  L"::::"  );
-	SetChar( 'r', L"::"    L"::"    L"oo"    L"o:"    L"o:"    L"o:"    L"::"    );
-	SetChar( 's', L":::"   L":::"   L":oo"   L"o::"   L"::o"   L"oo:"   L":::"   );
-	SetChar( 't', L"::"    L"o:"    L"oo"    L"o:"    L"o:"    L":o"    L"::"    );
-	SetChar( 'u', L":::"   L":::"   L"o:o"   L"o:o"   L"o:o"   L":oo"   L":::"   );
-	SetChar( 'v', L":::"   L":::"   L"o:o"   L"o:o"   L":o:"   L":o:"   L":::"   );
-	SetChar( 'w', L":::::" L":::::" L"o:o:o" L"o:o:o" L":o:o:" L":o:o:" L":::::" );
-	SetChar( 'x', L":::"   L":::"   L"o:o"   L":o:"   L":o:"   L"o:o"   L":::"   );
-	SetChar( 'y', L":::"   L":::"   L"o:o"   L"o:o"   L":o:"   L":o:"   L"o::"   );
-	SetChar( 'z', L":::"   L":::"   L"ooo"   L"::o"   L"o::"   L"ooo"   L":::"   );
-	SetChar( '{', L":::"   L":oo"   L":o:"   L"oo:"   L":o:"   L":oo"   L":::"   );
-	SetChar( '|', L":"     L"o"     L"o"     L"o"     L"o"     L"o"     L":"     );
-	SetChar( '}', L":::"   L"oo:"   L":o:"   L":oo"   L":o:"   L"oo:"   L":::"   );
-	SetChar( '~', L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   );
+	SetChar( L'`', L"::"    L"o:"    L":o"    L"::"    L"::"    L"::"    L"::"    );
+	SetChar( L'a', L":::"   L":::"   L"oo:"   L"::o"   L"o:o"   L":oo"   L":::"   );
+	SetChar( L'b', L"::::"  L"o:::"  L"ooo:"  L"o::o"  L"o::o"  L"ooo:"  L"::::"  );
+	SetChar( L'c', L":::"   L":::"   L":oo"   L"o::"   L"o::"   L":oo"   L":::"   );
+	SetChar( L'd', L"::::"  L":::o"  L":ooo"  L"o::o"  L"o::o"  L":ooo"  L"::::"  );
+	SetChar( L'e', L":::"   L":::"   L":o:"   L"o:o"   L"o::"   L":oo"   L":::"   );
+	SetChar( L'f', L"::"    L":o"    L"o:"    L"oo"    L"o:"    L"o:"    L"::"    );
+	SetChar( L'g', L"::::"  L"::::"  L":ooo"  L"o::o"  L":ooo"  L":::o"  L"ooo:"  );
+	SetChar( L'h', L":::"   L"o::"   L"o::"   L"oo:"   L"o:o"   L"o:o"   L":::"   );
+	SetChar( L'i', L":"     L"o"     L":"     L"o"     L"o"     L"o"     L":"     );
+	SetChar( L'j', L":::"   L"::o"   L":::"   L"::o"   L"::o"   L"oo:"   L":::"   );
+	SetChar( L'k', L":::"   L"o::"   L"o:o"   L"oo:"   L"o:o"   L"o:o"   L":::"   );
+	SetChar( L'l', L":"     L"o"     L"o"     L"o"     L"o"     L"o"     L":"     );
+	SetChar( L'm', L":::::" L":::::" L"oooo:" L"o:o:o" L"o:o:o" L"o:o:o" L":::::" );
+	SetChar( L'n', L":::"   L":::"   L"oo:"   L"o:o"   L"o:o"   L"o:o"   L":::"   );
+	SetChar( L'o', L"::::"  L"::::"  L":oo:"  L"o::o"  L"o::o"  L":oo:"  L"::::"  );
+	SetChar( L'p', L"::::"  L"::::"  L"ooo:"  L"o::o"  L"ooo:"  L"o:::"  L"::::"  );
+	SetChar( L'q', L"::::"  L"::::"  L":ooo"  L"o::o"  L":ooo"  L":::o"  L"::::"  );
+	SetChar( L'r', L"::"    L"::"    L"oo"    L"o:"    L"o:"    L"o:"    L"::"    );
+	SetChar( L's', L":::"   L":::"   L":oo"   L"o::"   L"::o"   L"oo:"   L":::"   );
+	SetChar( L't', L"::"    L"o:"    L"oo"    L"o:"    L"o:"    L":o"    L"::"    );
+	SetChar( L'u', L":::"   L":::"   L"o:o"   L"o:o"   L"o:o"   L":oo"   L":::"   );
+	SetChar( L'v', L":::"   L":::"   L"o:o"   L"o:o"   L":o:"   L":o:"   L":::"   );
+	SetChar( L'w', L":::::" L":::::" L"o:o:o" L"o:o:o" L":o:o:" L":o:o:" L":::::" );
+	SetChar( L'x', L":::"   L":::"   L"o:o"   L":o:"   L":o:"   L"o:o"   L":::"   );
+	SetChar( L'y', L":::"   L":::"   L"o:o"   L"o:o"   L":o:"   L":o:"   L"o::"   );
+	SetChar( L'z', L":::"   L":::"   L"ooo"   L"::o"   L"o::"   L"ooo"   L":::"   );
+	SetChar( L'{', L":::"   L":oo"   L":o:"   L"oo:"   L":o:"   L":oo"   L":::"   );
+	SetChar( L'|', L":"     L"o"     L"o"     L"o"     L"o"     L"o"     L":"     );
+	SetChar( L'}', L":::"   L"oo:"   L":o:"   L":oo"   L":o:"   L"oo:"   L":::"   );
+	SetChar( L'~', L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   L":::"   );
+	
+	SetChar( L'À', L"o:::"  L":o::"  L":oo:"  L"o::o"  L"oooo"  L"o::o"  L"::::"  );
+	SetChar( L'Ä', L"o::o"  L"::::"  L":oo:"  L"o::o"  L"oooo"  L"o::o"  L"::::"  );
+	SetChar( L'Á', L":::o"  L"::o:"  L":oo:"  L"o::o"  L"oooo"  L"o::o"  L"::::"  );
+
+	SetChar( L'È', L'E' ); SetChar( L'Ë', L'E' ); SetChar( L'É', L'E' );
+	SetChar( L'Ì', L'I' ); SetChar( L'Ï', L'I' ); SetChar( L'Í', L'I' );
+	SetChar( L'Ò', L'O' ); SetChar( L'Ö', L'O' ); SetChar( L'Ó', L'O' );
+	SetChar( L'Ù', L'U' ); SetChar( L'Ü', L'U' ); SetChar( L'Ú', L'U' );
+
+	SetChar( L'à', L"o::"   L":o:"   L"oo:"   L"::o"   L"o:o"   L":oo"   L":::"   );
+	SetChar( L'ä', L"o:o"   L":::"   L"oo:"   L"::o"   L"o:o"   L":oo"   L":::"   );
+	SetChar( L'á', L"::o"   L":o:"   L"oo:"   L"::o"   L"o:o"   L":oo"   L":::"   );
+
+	SetChar( L'è', L"o::"   L":o:"   L":o:"   L"o:o"   L"o::"   L":oo"   L":::"   );
+	SetChar( L'ë', L"o:o"   L":::"   L":o:"   L"o:o"   L"o::"   L":oo"   L":::"   );
+	SetChar( L'é', L"::o"   L":o:"   L":o:"   L"o:o"   L"o::"   L":oo"   L":::"   );
+
+	SetChar( L'ì', L"o:"    L":o"    L"::"    L":o"    L":o"    L":o"    L"::"    );
+	SetChar( L'ï', L":::"   L"o:o"   L":::"   L":o:"   L":o:"   L":o:"   L":::"   );
+	SetChar( L'í', L":o"    L"o:"    L"::"    L"o:"    L"o:"    L"o:"    L"::"    );
+	
+	SetChar( L'ò', L"o:::"  L":o::"  L"::::"  L":oo:"  L"o::o"  L":oo:"  L"::::"  );
+	SetChar( L'ö', L"::::"  L"o::o"  L"::::"  L":oo:"  L"o::o"  L":oo:"  L"::::"  );
+	SetChar( L'ó', L":::o"  L"::o:"  L"::::"  L":oo:"  L"o::o"  L":oo:"  L"::::"  );
+	
+	SetChar( L'ù', L"o::"   L":o:"   L":::"   L"o:o"   L"o:o"   L":oo"   L":::"   );
+	SetChar( L'ü', L":::"   L"o:o"   L":::"   L"o:o"   L"o:o"   L":oo"   L":::"   );
+	SetChar( L'ú', L"::o"   L":o:"   L":::"   L"o:o"   L"o:o"   L":oo"   L":::"   );
+
+	SetChar( L'æ', L":::::" L":::::" L"oo:o:" L"::o:o" L"o:o::" L":o:oo" L":::::" );
 }
 
 void Font7x5Time::InitCharset()
 {
-	SetChar( ':', L":"     L":"     L"o"     L":"     L"o"     L":"     L":"     );
-	SetChar( '1', L":::::" L"::o::" L":oo::" L"::o::" L"::o::" L":ooo:" L":::::" );
-	SetChar( '2', L":::::" L":ooo:" L"o:::o" L"::oo:" L":o:::" L"ooooo" L":::::"  );
-	SetChar( '3', L":::::" L"oooo:" L"::::o" L"::oo:" L"::::o" L"oooo:" L":::::"  );
-	SetChar( '4', L":::::" L"o::::" L"o::o:" L"ooooo" L":::o:" L":::o:" L":::::"  );
-	SetChar( '5', L":::::" L"ooooo" L"o::::" L"oooo:" L"::::o" L"oooo:" L":::::"  );
-	SetChar( '6', L":::::" L":oooo" L"o::::" L"oooo:" L"o:::o" L":ooo:" L":::::"  );
-	SetChar( '7', L":::::" L"ooooo" L"::::o" L":::o:" L"::o::" L"::o::" L":::::"  );
-	SetChar( '8', L":::::" L":ooo:" L"o:::o" L":ooo:" L"o:::o" L":ooo:" L":::::"  );
-	SetChar( '9', L":::::" L":ooo:" L"o:::o" L":oooo" L"::::o" L":ooo:" L":::::"  );
-	SetChar( '0', L":::::" L":ooo:" L"o::oo" L"o:o:o" L"oo::o" L":ooo:" L":::::"  );
+	SetChar( 0,    L""      L""      L""      L""      L""      L""      L""      );
+
+	SetChar( L':', L":"     L":"     L"o"     L":"     L"o"     L":"     L":"     );
+	SetChar( L'1', L":::::" L"::o::" L":oo::" L"::o::" L"::o::" L":ooo:" L":::::" );
+	SetChar( L'2', L":::::" L":ooo:" L"o:::o" L"::oo:" L":o:::" L"ooooo" L":::::" );
+	SetChar( L'3', L":::::" L"oooo:" L"::::o" L"::oo:" L"::::o" L"oooo:" L":::::" );
+	SetChar( L'4', L":::::" L"o::::" L"o::o:" L"ooooo" L":::o:" L":::o:" L":::::" );
+	SetChar( L'5', L":::::" L"ooooo" L"o::::" L"oooo:" L"::::o" L"oooo:" L":::::" );
+	SetChar( L'6', L":::::" L":oooo" L"o::::" L"oooo:" L"o:::o" L":ooo:" L":::::" );
+	SetChar( L'7', L":::::" L"ooooo" L"::::o" L":::o:" L"::o::" L"::o::" L":::::" );
+	SetChar( L'8', L":::::" L":ooo:" L"o:::o" L":ooo:" L"o:::o" L":ooo:" L":::::" );
+	SetChar( L'9', L":::::" L":ooo:" L"o:::o" L":oooo" L"::::o" L":ooo:" L":::::" );
+	SetChar( L'0', L":::::" L":ooo:" L"o::oo" L"o:o:o" L"oo::o" L":ooo:" L":::::" );
+	SetChar( L' ', L":::::" L":::::" L":::::" L":::::" L":::::" L":::::" L":::::" );
+	SetChar( L'/', L":::::" L"::::o" L":::o:" L"::o::" L":o:::" L"o::::" L":::::" );
 }
