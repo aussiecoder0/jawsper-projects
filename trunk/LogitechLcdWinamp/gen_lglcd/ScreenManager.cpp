@@ -1,22 +1,29 @@
 #include "StdAfx.h"
 #include "ScreenManager.h"
 
-ScreenManager::ScreenManager(void)
+ScreenManager::ScreenManager()
 {
 	m_Initialized = false;
 	m_Texts = new TextMap();
 	m_Surface = new Surface( );
 	m_TimeFont = new Font7x5Time();
+	
+	#define make_text_c(lbl,dt) m_Texts->insert( make_pair( lbl, dt ) )
+	#define make_text(lbl,x,y,w) make_text_c( lbl, new DrawableText( x, y, w ) )
+	#define make_text_f(lbl,x,y,w,f) make_text_c( lbl, new DrawableText( x, y, w, f ) )
 
-	#define make_text(lbl,x,y,w) m_Texts->insert( make_pair( lbl, new DrawableText( x, y, w ) ) )
-	#define make_text_f(lbl,x,y,w,f) m_Texts->insert( make_pair( lbl, new DrawableText( x, y, w, f ) ) )
 	make_text( TXT_ARTIST, 0, 0, LCD_W );
 	make_text( TXT_TITLE, 0, 8, LCD_W );
 	make_text( TXT_ALBUM, 0, 16, LCD_W );
-	make_text_f( TXT_TIME_LEFT, 0, LCD_H - 1 - 6 - 7, LCD_W, m_TimeFont );
-	make_text_f( TXT_TIME_RIGHT, LCD_W - 25, LCD_H - 1 - 6 - 7, 25, m_TimeFont );
+#define TIME_YPOS (LCD_H - 1 - 6 - 7)
+	make_text_f( TXT_TIME_POS, 0, TIME_YPOS, 25, m_TimeFont );
+	make_text_f( TXT_TIME_LENGTH, LCD_W, TIME_YPOS, -25, m_TimeFont );
+		
+	make_text_f( TXT_PL_DISP, LCD_W, 0, -53, m_TimeFont );
+	
 	#undef make_text
 	#undef make_text_f
+	#undef make_text_c
 
 	DWORD retval;
 
@@ -54,6 +61,8 @@ ScreenManager::ScreenManager(void)
 		m_Device = octx.device;
 
 		m_Initialized = true;
+
+		DrawInit();
 		
 		Update();
 	}
@@ -69,7 +78,7 @@ ScreenManager::ScreenManager(void)
 }
 
 
-ScreenManager::~ScreenManager(void)
+ScreenManager::~ScreenManager()
 {
 	if( LGLCD_INVALID_DEVICE != m_Device )
 	{
@@ -94,7 +103,10 @@ ScreenManager::~ScreenManager(void)
 }
 
 
-
+void ScreenManager::DrawInit()
+{
+	m_Surface->BoxAbs( 0, LCD_H - 1 - 6, LCD_W - 1, LCD_H - 1 );
+}
 
 void ScreenManager::Draw()
 {
@@ -102,14 +114,12 @@ void ScreenManager::Draw()
 	{
 		iter->second->Draw( m_Surface );
 	}
-	m_Surface->BoxAbs( 0, LCD_H - 1 - 6, LCD_W - 1, LCD_H - 1 );
-	m_Surface->BarAbs( 2, LCD_H - 1 - 4, LCD_W - 3, LCD_H - 3 );
 }
 
-void ScreenManager::Update()
+void ScreenManager::Update( bool draw )
 {
 	if( !m_Initialized ) return;
-	Draw();
+	if( draw ) Draw();
 	DWORD retval = lgLcdUpdateBitmap( m_Device, m_Surface->Get(), LGLCD_PRIORITY_ALERT );
 	if( ERROR_SUCCESS != retval )
 	{
@@ -125,5 +135,15 @@ void ScreenManager::SetString( TextID id, wchar_t* str )
 	if( iter != m_Texts->end() )
 	{
 		iter->second->SetText( str );
+	}
+}
+
+void ScreenManager::SetProgress( int val, int min, int max )
+{
+	m_Surface->BarAbs( 2, LCD_H - 1 - 4, LCD_W - 3, LCD_H - 3, PIXEL_OFF );
+	if( val > 0 && max - min > 0 )
+	{
+		int x2 = ( (double)( val - min ) / (double)( max - min ) ) * ( LCD_W - 5 ) + 2;
+		if( x2 > 2 ) m_Surface->BarAbs( 2, LCD_H - 1 - 4, x2, LCD_H - 3, PIXEL_ON );
 	}
 }

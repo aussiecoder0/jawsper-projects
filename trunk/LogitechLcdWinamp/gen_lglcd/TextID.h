@@ -6,7 +6,9 @@ typedef enum : int
 	TXT_TITLE,
 	TXT_ALBUM,
 
-	TXT_TIME_LEFT,
-	TXT_TIME_RIGHT
+	TXT_TIME_POS,
+	TXT_TIME_LENGTH,
+
+	TXT_PL_DISP
 } TextIDs;
 typedef int TextID;
