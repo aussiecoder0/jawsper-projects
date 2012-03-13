@@ -121,3 +121,22 @@ void Surface::BarAbs( int x1, int y1, int x2, int y2, Pixel c )
 		Line( x1, y, x2, y, c );
 	}
 }
+
+void output_tga( ofstream &, unsigned char* buff, size_t width, size_t height );
+void output_bmp( ofstream &, unsigned char* buff, size_t width, size_t height );
+
+void Surface::Save( const wchar_t* a_File )
+{
+	ofstream f( a_File, ios::out | ios::trunc | ios::binary );
+
+	if( f.is_open() )
+	{
+		output_tga( f, m_bmp->pixels, LCD_W, LCD_H );
+	}
+	else
+	{
+		MessageBox( 0, _T("no open"), _T(""), MB_OK );
+	}
+
+	f.close();
+}

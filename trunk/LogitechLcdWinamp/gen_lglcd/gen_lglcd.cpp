@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "gen_lglcd.h"
 #include "inc/gen.h"
 #include "inc/wa_ipc.h"
 

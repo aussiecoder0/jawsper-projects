@@ -1,10 +1,13 @@
 #include "Stdafx.h"
 #include "ScreenManager.h"
 
-void DrawableText::SetText( wchar_t* a_Str )
+void DrawableText::SetText( const wchar_t* a_Str )
 {
-	wcscpy_s( m_Str, MAX_PATH, a_Str );
-	m_Changed = true;
+	if( wcscmp( m_Str, a_Str ) != 0 )
+	{
+		wcscpy_s( m_Str, MAX_PATH, a_Str );
+		m_Changed = true;
+	}
 }
 
 bool DrawableText::Draw( Surface* a_Surface )

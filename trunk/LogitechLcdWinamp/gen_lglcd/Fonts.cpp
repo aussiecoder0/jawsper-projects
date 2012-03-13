@@ -1,7 +1,7 @@
 #include "Stdafx.h"
 #include "Fonts.h"
 
-FontChar::FontChar(wchar_t a_Char, wchar_t* a_Data, int max_height)
+FontChar::FontChar(wchar_t a_Char, wchar_t* a_Data, size_t max_height)
 {
 	m_Char = a_Char;
 	size_t len = wcslen( a_Data );

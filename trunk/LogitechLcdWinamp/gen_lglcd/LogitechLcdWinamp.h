@@ -5,12 +5,19 @@
 
 class LogitechLcdWinamp
 {
-	HWND m_Winamp;
-	ScreenManager* m_ScreenManager;
-	UINT m_TimerID;
+	HWND			m_Winamp;
+	ScreenManager*	m_ScreenManager;
+	UINT			m_TimerID;
+	UINT			m_ClockTimerID;
 
 	static LogitechLcdWinamp* s_Instance;
-	LogitechLcdWinamp() : m_ScreenManager(0), m_Winamp(0), m_TimerID(0xFF) { };
+	LogitechLcdWinamp() : 
+		m_ScreenManager(0), 
+		m_Winamp(0), 
+		m_TimerID(0xdecaf),
+		m_ClockTimerID(0xcafe) { };
+	LogitechLcdWinamp(const LogitechLcdWinamp&);
+	LogitechLcdWinamp& operator =(LogitechLcdWinamp& x) { return const_cast<LogitechLcdWinamp&>(x); }
 	~LogitechLcdWinamp();
 
 	void ProcessIPCMessage( DWORD lParam, DWORD wParam );

@@ -20,6 +20,8 @@ ScreenManager::ScreenManager()
 	make_text_f( TXT_TIME_LENGTH, LCD_W, TIME_YPOS, -25, m_TimeFont );
 		
 	make_text_f( TXT_PL_DISP, LCD_W, 0, -53, m_TimeFont );
+
+	make_text_f( TXT_CLOCK, (LCD_W / 2) - (39 / 2), TIME_YPOS, 39, m_TimeFont );
 	
 	#undef make_text
 	#undef make_text_f
@@ -29,6 +31,7 @@ ScreenManager::ScreenManager()
 
 	retval = lgLcdInit();
 
+	for( int i = 0; i < 4; ++i ) m_ButtonsDown[i] = m_ButtonsPressed[i] = false;
 
 	lgLcdConnectContextEx cctx = 
 	{
@@ -52,19 +55,22 @@ ScreenManager::ScreenManager()
 		{
 			m_Connection,
 			LGLCD_DEVICE_BW,
-			0,
+			{ &OnSoftbuttonsCB, this },
 			0
 		};
 
-		lgLcdOpenByType( &octx );
+		if( ERROR_SUCCESS == lgLcdOpenByType( &octx ) )
+		{
 
-		m_Device = octx.device;
+			m_Device = octx.device;
 
-		m_Initialized = true;
+			m_Initialized = true;
 
-		DrawInit();
+			DrawInit();
 		
-		Update();
+			Update();
+
+		}
 	}
 	else
 	{
@@ -116,11 +122,11 @@ void ScreenManager::Draw()
 	}
 }
 
-void ScreenManager::Update( bool draw )
+void ScreenManager::Update( bool a_Draw, bool a_Priority )
 {
 	if( !m_Initialized ) return;
-	if( draw ) Draw();
-	DWORD retval = lgLcdUpdateBitmap( m_Device, m_Surface->Get(), LGLCD_PRIORITY_ALERT );
+	if( a_Draw ) Draw();
+	DWORD retval = lgLcdUpdateBitmap( m_Device, m_Surface->Get(), a_Priority ? LGLCD_PRIORITY_ALERT : LGLCD_PRIORITY_NORMAL );
 	if( ERROR_SUCCESS != retval )
 	{
 		wchar_t str[MAX_PATH];
@@ -129,12 +135,12 @@ void ScreenManager::Update( bool draw )
 	}
 }
 
-void ScreenManager::SetString( TextID id, wchar_t* str )
+void ScreenManager::SetString( TextID a_Id, wchar_t* a_Str )
 {
-	TextMap::iterator iter = m_Texts->find( id );
+	TextMap::iterator iter = m_Texts->find( a_Id );
 	if( iter != m_Texts->end() )
 	{
-		iter->second->SetText( str );
+		iter->second->SetText( a_Str );
 	}
 }
 
@@ -143,7 +149,57 @@ void ScreenManager::SetProgress( int val, int min, int max )
 	m_Surface->BarAbs( 2, LCD_H - 1 - 4, LCD_W - 3, LCD_H - 3, PIXEL_OFF );
 	if( val > 0 && max - min > 0 )
 	{
-		int x2 = ( (double)( val - min ) / (double)( max - min ) ) * ( LCD_W - 5 ) + 2;
+		int x2 = static_cast<int>(( (double)( val - min ) / (double)( max - min ) ) * (double)( LCD_W - 5 ) + 2.0);
 		if( x2 > 2 ) m_Surface->BarAbs( 2, LCD_H - 1 - 4, x2, LCD_H - 3, PIXEL_ON );
+	}
+}
+
+
+DWORD WINAPI OnSoftbuttonsCB(IN int device, IN DWORD dwButtons, IN const PVOID pContext)
+{
+	return static_cast<ScreenManager*>(pContext)->OnSoftButtonsCallback( device, dwButtons );
+}
+
+DWORD ScreenManager::OnSoftButtonsCallback( int device, DWORD dwButtons )
+{
+	if( m_Device != device ) return 0;
+
+	int i;
+	for( i = 0; i < 4; ++i )
+	{
+		if( ( dwButtons >> i ) & 0x01 )
+		{
+			if( !m_ButtonsDown[i] )
+				m_ButtonsDown[i] = true;
+		}
+		else
+		{
+			if( m_ButtonsDown[i] )
+			{
+				m_ButtonsDown[i] = false;
+				m_ButtonsPressed[i] = true;
+			}
+		}
+	}
+
+	ButtonsUpdate();
+
+	return 0;
+}
+
+bool ScreenManager::ButtonPressed(int num)
+{
+	if( m_ButtonsPressed[num % 4] )
+	{
+		m_ButtonsPressed[num % 4] = false;
+		return true;
+	}
+	return false;
+}
+
+void ScreenManager::ButtonsUpdate()
+{
+	if( ButtonPressed( 0 ) )
+	{
 	}
 }
