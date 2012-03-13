@@ -1,6 +1,6 @@
 #pragma once
 
-typedef enum : int
+typedef enum
 {
 	TXT_ARTIST = 0,
 	TXT_TITLE,
@@ -9,6 +9,8 @@ typedef enum : int
 	TXT_TIME_POS,
 	TXT_TIME_LENGTH,
 
-	TXT_PL_DISP
+	TXT_PL_DISP,
+
+	TXT_CLOCK
 } TextIDs;
 typedef int TextID;

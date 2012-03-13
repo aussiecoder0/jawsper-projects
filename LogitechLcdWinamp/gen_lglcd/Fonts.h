@@ -7,15 +7,15 @@ using namespace std;
 class FontChar
 {
 public:
-	FontChar( wchar_t a_Char, wchar_t* a_Data, int a_MaxHeight );
+	FontChar( wchar_t a_Char, wchar_t* a_Data, size_t a_MaxHeight );
 	~FontChar();
-	wchar_t m_Char;
-	wchar_t m_Width;
-	wchar_t* m_Data;
+	wchar_t		m_Char;
+	wchar_t*	m_Data;
+	size_t	m_Width;
 };
 
-typedef map<wchar_t,FontChar*> FontMap;
-typedef map<wchar_t,wchar_t> FontRemap;
+typedef map<wchar_t,FontChar*>	FontMap;
+typedef map<wchar_t,wchar_t>	FontRemap;
 
 /*abstract*/ class Font
 {
@@ -32,9 +32,9 @@ protected:
 
 public:
 	Font();
-	virtual ~Font();
-	wchar_t* GetChar( wchar_t c, int& w, int& h );
-	int MeasureWidth( wchar_t* c );
+	virtual		~Font();
+	wchar_t*	GetChar( wchar_t c, int& w, int& h );
+	int			MeasureWidth( wchar_t* c );
 };
 
 class Font7x5 : public Font

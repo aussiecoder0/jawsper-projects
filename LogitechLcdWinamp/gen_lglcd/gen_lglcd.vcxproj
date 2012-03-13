@@ -82,6 +82,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DrawableText.h" />
     <ClInclude Include="Fonts.h" />
     <ClInclude Include="gen_lglcd.h" />
     <ClInclude Include="inc\lglcd.h" />
@@ -98,12 +99,14 @@
     <ClCompile Include="Fonts.cpp" />
     <ClCompile Include="gen_lglcd.cpp" />
     <ClCompile Include="LogitechLcdWinamp.cpp" />
+    <ClCompile Include="output_bmp.cpp" />
     <ClCompile Include="ScreenManager.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Surface.cpp" />
+    <ClCompile Include="output_tga.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,32 +3,35 @@
 #include "stdafx.h"
 #include "inc/wa_ipc.h"
 #include "LogitechLcdWinamp.h"
+#include <time.h>
 
 /* static */ LogitechLcdWinamp* LogitechLcdWinamp::s_Instance = 0;
 
 /* static */ LogitechLcdWinamp* LogitechLcdWinamp::getInstance()
 {
-	if( LogitechLcdWinamp::s_Instance == 0 )
+	if( s_Instance == 0 )
 	{
-		LogitechLcdWinamp::s_Instance = new LogitechLcdWinamp();
+		s_Instance = new LogitechLcdWinamp();
 	}
-	return LogitechLcdWinamp::s_Instance;
+	return s_Instance;
 }
 
 /* static */ void LogitechLcdWinamp::deleteInstance()
 {
-	delete LogitechLcdWinamp::s_Instance;
+	delete s_Instance;
+	s_Instance = 0;
 }
 
 
 LogitechLcdWinamp::~LogitechLcdWinamp()
 {
+	KillTimer( m_Winamp, m_ClockTimerID );
 	delete m_ScreenManager;
 }
 
-int LogitechLcdWinamp::init( HWND winamp )
+int LogitechLcdWinamp::init( HWND a_Winamp )
 {
-	m_Winamp = winamp;
+	m_Winamp = a_Winamp;
 	m_ScreenManager = new ScreenManager();
 
 	m_ScreenManager->SetString( TXT_ARTIST, _T("Artist") );
@@ -37,9 +40,12 @@ int LogitechLcdWinamp::init( HWND winamp )
 	m_ScreenManager->SetString( TXT_TIME_POS,  _T("00:00") );
 	m_ScreenManager->SetString( TXT_TIME_LENGTH, _T("00:00") );
 	m_ScreenManager->SetString( TXT_PL_DISP, _T("0000/0000") );
+	m_ScreenManager->SetString( TXT_CLOCK, _T("00:00:00") );
 	m_ScreenManager->SetProgress( 0, 0, 0 );
 
-	m_ScreenManager->Update( false );
+	m_ScreenManager->Update( false, true );
+
+	SetTimer( m_Winamp, m_ClockTimerID, 100, 0 );
 	return 0;
 }
 
@@ -119,21 +125,34 @@ void LogitechLcdWinamp::SetFilename( const wchar_t* filename )
 
 void LogitechLcdWinamp::ProcessTimerMessage( WPARAM wParam )
 {
-	if( wParam != m_TimerID ) return;
 	static wchar_t buff[ 1024 ];
+	if( wParam == m_TimerID )
+	{
 
-	int track_pos = SendIPCMessage( 0, IPC_GETOUTPUTTIME ) / 1000;
-	int track_length = SendIPCMessage( 1, IPC_GETOUTPUTTIME );
+		int track_pos = SendIPCMessage( 0, IPC_GETOUTPUTTIME ) / 1000;
+		int track_length = SendIPCMessage( 1, IPC_GETOUTPUTTIME );
 
-	format_time( track_pos, buff );
-	m_ScreenManager->SetString( TXT_TIME_POS, buff );
+		format_time( track_pos, buff );
+		m_ScreenManager->SetString( TXT_TIME_POS, buff );
 				
-	m_ScreenManager->SetProgress( track_pos, 0, track_length );
+		m_ScreenManager->SetProgress( track_pos, 0, track_length );
 
-	m_ScreenManager->Update();
+		m_ScreenManager->Update();
 
-	int is_playing = SendIPCMessage( 0, IPC_ISPLAYING );
+		int is_playing = SendIPCMessage( 0, IPC_ISPLAYING );
 
-	if( is_playing > 0 )	SetTimer( m_Winamp, m_TimerID, 100, 0 );
-	else					KillTimer( m_Winamp, m_TimerID );
+		if( is_playing > 0 )	SetTimer( m_Winamp, m_TimerID, 100, 0 );
+		else					KillTimer( m_Winamp, m_TimerID );
+	}
+	else if( wParam == m_ClockTimerID )
+	{
+		time_t rawtime;
+		struct tm timeinfo;
+		time( &rawtime );
+		localtime_s( &timeinfo, &rawtime );
+		wcsftime( buff, 1024, _T("%X"), &timeinfo );
+
+		m_ScreenManager->SetString( TXT_CLOCK, buff );
+		m_ScreenManager->Update();
+	}
 }

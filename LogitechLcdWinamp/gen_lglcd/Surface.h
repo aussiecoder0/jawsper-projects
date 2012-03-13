@@ -38,4 +38,6 @@ public:
 
 	void Bar( int x1, int y1, int w, int h, Pixel c = PIXEL_ON );
 	void BarAbs( int x1, int y1, int x2, int y2, Pixel c = PIXEL_ON );
+
+	void Save( const wchar_t* file );
 };

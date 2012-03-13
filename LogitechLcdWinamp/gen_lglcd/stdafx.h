@@ -18,3 +18,4 @@
 #include "gen_lglcd.h"
 #include "LogitechLcdWinamp.h"
 #include <tchar.h>
+#include <fstream>
