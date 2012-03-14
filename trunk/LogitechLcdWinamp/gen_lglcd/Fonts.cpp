@@ -5,13 +5,15 @@ FontChar::FontChar(wchar_t a_Char, wchar_t* a_Data, size_t max_height)
 {
 	m_Char = a_Char;
 	size_t len = wcslen( a_Data );
-	m_Width = len / max_height;
-	if( m_Width > 0 )
+	if( len > 0 )
 	{
+		m_Width = len / max_height;
+	//if( m_Width > 0 )
+	//{
 		m_Data = new wchar_t[ len ];
 		memcpy( m_Data, a_Data, len * sizeof(wchar_t) );
 	}
-	else m_Data = 0;
+	else m_Width = 0, m_Data = 0;
 }
 
 FontChar::~FontChar()
@@ -19,10 +21,9 @@ FontChar::~FontChar()
 	if( m_Data != 0 ) delete[] m_Data;
 }
 
+
 Font::Font() : m_MaxWidth(5)
 {
-	m_Font = new FontMap();
-	m_FontRemap = new FontRemap();
 }
 
 void Font::Init( int h )
@@ -33,32 +34,39 @@ void Font::Init( int h )
 
 Font::~Font()
 {
-	for( FontMap::iterator iter = m_Font->begin(); iter != m_Font->end(); iter++ )
+	for( FontMap::iterator iter = m_FontMap.begin(); iter != m_FontMap.end(); iter++ )
 	{
-		delete iter->second;
+		delete *iter;
 	}
-	delete m_Font;
-	delete m_FontRemap;
 }
 
-wchar_t* Font::GetChar( wchar_t c, int& w, int& h )
+FontChar* FindChar( FontMap& map, const wchar_t c )
 {
-	FontMap::const_iterator it = m_Font->find( c );
-	if( it == m_Font->end() )
+	for( FontMap::iterator it = map.begin(); it != map.end(); ++it )
 	{
-		FontRemap::const_iterator re_it = m_FontRemap->find(c);
-		if( re_it != m_FontRemap->end() )
+		if( *it != 0 && (*it)->m_Char == c ) return *it;
+	}
+	return 0;
+}
+
+wchar_t* Font::GetChar( const wchar_t c, int& w, int& h )
+{	
+	FontChar* chr = FindChar( m_FontMap, c );
+
+	if( c == 0 )
+	{
+		FontRemap::const_iterator re_it = m_FontRemap.find( c );
+		if( re_it != m_FontRemap.end() )
 		{
-			it = m_Font->find( re_it->second );
-			if( it == m_Font->end() )
-				it = m_Font->begin();
+			chr = FindChar( m_FontMap, re_it->second );
+			if( chr == 0 )
+				chr = *(m_FontMap.begin());
 		}
 		else
 		{
-			it = m_Font->begin();
+			chr = *(m_FontMap.begin());
 		}
 	}
-	FontChar* chr = it->second;
 	w = chr->m_Width;
 	h = m_MaxHeight;
 	return chr->m_Data;
@@ -67,12 +75,12 @@ wchar_t* Font::GetChar( wchar_t c, int& w, int& h )
 void Font::SetChar( wchar_t p, wchar_t* c )
 {
 	FontChar* el = new FontChar( p, c, m_MaxHeight );
-	m_Font->insert( make_pair( p, el ) );
+	m_FontMap.push_back( el );
 }
 
 void Font::SetChar( wchar_t from, wchar_t to )
 {
-	m_FontRemap->insert( make_pair( from, to ) );
+	m_FontRemap.insert( make_pair( from, to ) );
 }
 
 int Font::MeasureWidth( wchar_t* str )

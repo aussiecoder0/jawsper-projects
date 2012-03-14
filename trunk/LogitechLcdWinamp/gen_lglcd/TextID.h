@@ -2,15 +2,16 @@
 
 typedef enum
 {
-	TXT_ARTIST = 0,
+	TXT_ARTIST,
+	TXT_PL_DISP,
 	TXT_TITLE,
 	TXT_ALBUM,
 
+	TXT_STATUS,
+	TXT_EMAIL,
+
 	TXT_TIME_POS,
+	TXT_CLOCK,
 	TXT_TIME_LENGTH,
-
-	TXT_PL_DISP,
-
-	TXT_CLOCK
 } TextIDs;
 typedef int TextID;
