@@ -25,27 +25,29 @@
 
 LogitechLcdWinamp::~LogitechLcdWinamp()
 {
-	KillTimer( m_Winamp, m_ClockTimerID );
-	delete m_ScreenManager;
+	KillTimer( m_Winamp, CLOCK_TIMER_ID );
+	KillTimer( m_Winamp, EMAIL_TIMER_ID );
+	delete m_MainScreen;
 }
 
 int LogitechLcdWinamp::init( HWND a_Winamp )
 {
 	m_Winamp = a_Winamp;
-	m_ScreenManager = new ScreenManager();
+	m_MainScreen = new MainScreen();
 
-	m_ScreenManager->SetString( TXT_ARTIST, _T("Artist") );
-	m_ScreenManager->SetString( TXT_TITLE,  _T("Title") );
-	m_ScreenManager->SetString( TXT_ALBUM,  _T("Album") );
-	m_ScreenManager->SetString( TXT_TIME_POS,  _T("00:00") );
-	m_ScreenManager->SetString( TXT_TIME_LENGTH, _T("00:00") );
-	m_ScreenManager->SetString( TXT_PL_DISP, _T("0000/0000") );
-	m_ScreenManager->SetString( TXT_CLOCK, _T("00:00:00") );
-	m_ScreenManager->SetProgress( 0, 0, 0 );
+	m_MainScreen->SetString( TXT_ARTIST, _T("Artist") );
+	m_MainScreen->SetString( TXT_TITLE,  _T("Title") );
+	m_MainScreen->SetString( TXT_ALBUM,  _T("Album") );
+	m_MainScreen->SetString( TXT_TIME_POS,  _T("00:00") );
+	m_MainScreen->SetString( TXT_TIME_LENGTH, _T("00:00") );
+	m_MainScreen->SetString( TXT_PL_DISP, _T("0000/0000") );
+	m_MainScreen->SetString( TXT_CLOCK, _T("00:00:00") );
+	m_MainScreen->SetProgress( 0, 0, 0 );
 
-	m_ScreenManager->Update( false, true );
+	m_MainScreen->Update( false, true );
 
-	SetTimer( m_Winamp, m_ClockTimerID, 100, 0 );
+	SetTimer( m_Winamp, CLOCK_TIMER_ID, 100, 0 );
+	SetTimer( m_Winamp, EMAIL_TIMER_ID, 1000, 0 );
 	return 0;
 }
 
@@ -84,16 +86,16 @@ void LogitechLcdWinamp::ProcessIPCMessage( DWORD lParam, DWORD wParam )
 				int list_pos = SendIPCMessage( 0, IPC_GETLISTPOS );
 				SetFilename( (const wchar_t*) SendIPCMessage( list_pos, IPC_GETPLAYLISTFILEW ) );
 				format_playlist_num( list_pos, SendIPCMessage( 0, IPC_GETLISTLENGTH ), buff );
-				m_ScreenManager->SetString( TXT_PL_DISP, buff );
+				m_MainScreen->SetString( TXT_PL_DISP, buff );
 
 				// track length in seconds
 				int track_length = SendIPCMessage( 1, IPC_GETOUTPUTTIME );
 				format_time( track_length, buff );
-				m_ScreenManager->SetString( TXT_TIME_LENGTH, buff );
+				m_MainScreen->SetString( TXT_TIME_LENGTH, buff );
 
-				SetTimer( m_Winamp, m_TimerID, USER_TIMER_MINIMUM, 0 );
+				SetTimer( m_Winamp, MAIN_TIMER_ID, USER_TIMER_MINIMUM, 0 );
 
-				m_ScreenManager->Update();
+				m_MainScreen->Update();
 			}
 			break;
 	}
@@ -115,8 +117,8 @@ void LogitechLcdWinamp::SetFilename( const wchar_t* filename )
 {
 	static wchar_t buff[ 1024 ];
 #define SetMeta(ID,type) \
-	GetMetaData( buff, MAX_PATH + 1, filename, _T(type) );\
-	m_ScreenManager->SetString( ID, buff )
+	GetMetaData( buff, 1024, filename, _T(type) );\
+	m_MainScreen->SetString( ID, buff )
 	SetMeta( TXT_ARTIST, "artist" );
 	SetMeta( TXT_TITLE,  "title"  );
 	SetMeta( TXT_ALBUM,  "album"  );
@@ -126,33 +128,43 @@ void LogitechLcdWinamp::SetFilename( const wchar_t* filename )
 void LogitechLcdWinamp::ProcessTimerMessage( WPARAM wParam )
 {
 	static wchar_t buff[ 1024 ];
-	if( wParam == m_TimerID )
+	switch( wParam )
 	{
+		case MAIN_TIMER_ID:
+		{
+			int track_pos = SendIPCMessage( 0, IPC_GETOUTPUTTIME ) / 1000;
+			int track_length = SendIPCMessage( 1, IPC_GETOUTPUTTIME );
 
-		int track_pos = SendIPCMessage( 0, IPC_GETOUTPUTTIME ) / 1000;
-		int track_length = SendIPCMessage( 1, IPC_GETOUTPUTTIME );
-
-		format_time( track_pos, buff );
-		m_ScreenManager->SetString( TXT_TIME_POS, buff );
+			format_time( track_pos, buff );
+			m_MainScreen->SetString( TXT_TIME_POS, buff );
 				
-		m_ScreenManager->SetProgress( track_pos, 0, track_length );
+			m_MainScreen->SetProgress( track_pos, 0, track_length );
 
-		m_ScreenManager->Update();
+			int state = SendIPCMessage( 0, IPC_ISPLAYING );
 
-		int is_playing = SendIPCMessage( 0, IPC_ISPLAYING );
+			if( state > 0 )
+				SetTimer( m_Winamp, MAIN_TIMER_ID, 100, 0 );
+			else
+				KillTimer( m_Winamp, MAIN_TIMER_ID );
 
-		if( is_playing > 0 )	SetTimer( m_Winamp, m_TimerID, 100, 0 );
-		else					KillTimer( m_Winamp, m_TimerID );
-	}
-	else if( wParam == m_ClockTimerID )
-	{
-		time_t rawtime;
-		struct tm timeinfo;
-		time( &rawtime );
-		localtime_s( &timeinfo, &rawtime );
-		wcsftime( buff, 1024, _T("%X"), &timeinfo );
+			m_MainScreen->SetPlayingState( state );
 
-		m_ScreenManager->SetString( TXT_CLOCK, buff );
-		m_ScreenManager->Update();
+			m_MainScreen->Update();
+
+		}
+			break;
+		case CLOCK_TIMER_ID:
+			time_t rawtime;
+			struct tm timeinfo;
+			time( &rawtime );
+			localtime_s( &timeinfo, &rawtime );
+			wcsftime( buff, 1024, _T("%X"), &timeinfo );
+
+			m_MainScreen->SetString( TXT_CLOCK, buff );
+			m_MainScreen->Update();
+			break;
+		case EMAIL_TIMER_ID:
+			m_MainScreen->UpdateMailCount();
+			break;
 	}
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "MailCount.h"
 #include "inc/lglcd.h"
 #include "Surface.h"
 #include <map>
@@ -13,9 +14,9 @@ typedef map<TextID,DrawableText*> TextMap;
 
 DWORD WINAPI OnSoftbuttonsCB(IN int device, IN DWORD dwButtons, IN const PVOID pContext);
 
-class ScreenManager
+/* abstract */ class ScreenManager
 {
-	Font* m_TimeFont;
+protected:
 	int m_Connection;
 	int m_Device;
 	Surface* m_Surface;
@@ -25,21 +26,18 @@ class ScreenManager
 	bool m_ButtonsPressed[4];
 	bool m_ButtonsDown[4];
 
-
-	void DrawInit();
 	void Draw();
 
 	bool ButtonPressed(int);
 
-	void ButtonsUpdate();
+	virtual void ButtonsUpdate() = 0;
 public:
 	ScreenManager();
-	~ScreenManager();
+	virtual ~ScreenManager();
 
 	void Update( bool draw = true, bool priority = false );
 
 	void SetString( TextID, wchar_t* );
-	void SetProgress( int val, int min, int max );
 
 	DWORD OnSoftButtonsCallback( int device, DWORD dwButtons );
 };

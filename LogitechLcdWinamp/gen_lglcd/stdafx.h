@@ -19,3 +19,5 @@
 #include "LogitechLcdWinamp.h"
 #include <tchar.h>
 #include <fstream>
+#include "MailCount.h"
+#include "Screens.h"

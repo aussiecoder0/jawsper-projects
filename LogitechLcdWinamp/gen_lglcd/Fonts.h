@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <map>
 
 using namespace std;
@@ -7,23 +8,23 @@ using namespace std;
 class FontChar
 {
 public:
-	FontChar( wchar_t a_Char, wchar_t* a_Data, size_t a_MaxHeight );
+	FontChar( const wchar_t a_Char, wchar_t* a_Data, size_t a_MaxHeight );
 	~FontChar();
 	wchar_t		m_Char;
 	wchar_t*	m_Data;
-	size_t	m_Width;
+	size_t		m_Width;
 };
 
-typedef map<wchar_t,FontChar*>	FontMap;
-typedef map<wchar_t,wchar_t>	FontRemap;
+typedef vector<FontChar*>		FontMap;
+typedef map<wchar_t, wchar_t>	FontRemap;
 
 /*abstract*/ class Font
 {
 protected:
 	int				m_MaxWidth;
 	int				m_MaxHeight;
-	FontMap*		m_Font;
-	FontRemap*		m_FontRemap;
+	FontMap			m_FontMap;
+	FontRemap		m_FontRemap;
 
 	void			Init(int);
 	virtual void	InitCharset() = 0;

@@ -1,21 +1,19 @@
 #pragma once
 
 #include "ScreenManager.h"
-#include "inc/wa_ipc.h"
+#include "Screens.h"
+
+#define MAIN_TIMER_ID (0xdecaf)
+#define CLOCK_TIMER_ID (0xcafe)
+#define EMAIL_TIMER_ID (0xeeee)
 
 class LogitechLcdWinamp
 {
 	HWND			m_Winamp;
-	ScreenManager*	m_ScreenManager;
-	UINT			m_TimerID;
-	UINT			m_ClockTimerID;
+	MainScreen*		m_MainScreen;
 
 	static LogitechLcdWinamp* s_Instance;
-	LogitechLcdWinamp() : 
-		m_ScreenManager(0), 
-		m_Winamp(0), 
-		m_TimerID(0xdecaf),
-		m_ClockTimerID(0xcafe) { };
+	LogitechLcdWinamp() : m_MainScreen(0), m_Winamp(0) { };
 	LogitechLcdWinamp(const LogitechLcdWinamp&);
 	LogitechLcdWinamp& operator =(LogitechLcdWinamp& x) { return const_cast<LogitechLcdWinamp&>(x); }
 	~LogitechLcdWinamp();
@@ -36,6 +34,6 @@ public:
 
 	static void IPCMessage( DWORD lParam, DWORD wParam ) { getInstance()->ProcessIPCMessage( lParam, wParam ); }
 	static void TimerMessage( WPARAM wParam ) { getInstance()->ProcessTimerMessage( wParam ); }
-	static void SetString( TextID id, wchar_t* str ) { getInstance()->m_ScreenManager->SetString( id, str ); }
-	static void Update() { getInstance()->m_ScreenManager->Update(); }
+	static void SetString( TextID id, wchar_t* str ) { getInstance()->m_MainScreen->SetString( id, str ); }
+	static void Update() { getInstance()->m_MainScreen->Update(); }
 };
