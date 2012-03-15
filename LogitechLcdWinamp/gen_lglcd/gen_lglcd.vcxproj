@@ -92,6 +92,7 @@
     <ClInclude Include="inc\wa_ipc.h" />
     <ClInclude Include="LogitechLcdWinamp.h" />
     <ClInclude Include="MailCount.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="ScreenManager.h" />
     <ClInclude Include="Screens.h" />
     <ClInclude Include="stdafx.h" />
@@ -114,6 +115,9 @@
     <ClCompile Include="Surface.cpp" />
     <ClCompile Include="output_tga.cpp" />
     <ClCompile Include="UnreadMailCount.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="gen_lglcd.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

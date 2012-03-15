@@ -45,11 +45,13 @@ void MainScreen::DrawInit()
 void MainScreen::UpdateMailCount()
 {
 	unsigned int total = 0;
+	/*
 	GetUnreadMailCount( m_MailCount );
 	for( size_t i = 0; i < m_MailCount.size(); i++ )
 	{
 		total += m_MailCount[i].count;
-	}
+	}*/
+	total = UnreadMailCount();
 	m_HasMail = total > 0;
 	static wchar_t buff[MAX_PATH];
 	if( m_HasMail )

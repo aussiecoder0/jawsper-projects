@@ -1,81 +1,32 @@
 #include "StdAfx.h"
 #include "ScreenManager.h"
 
-ScreenManager::ScreenManager() : m_Initialized( false )
+ScreenManager::ScreenManager() : 
+		m_Initialized( false ), m_Functioning( false ), 
+		m_Disabled( true ), m_Priority( LGLCD_PRIORITY_NORMAL )
 {
 	m_Texts = new TextMap();
-
 	m_Surface = new Surface();
-
-	DWORD retval;
-
-	retval = lgLcdInit();
 
 	for( int i = 0; i < 4; ++i ) m_ButtonsDown[i] = m_ButtonsPressed[i] = false;
 
-	lgLcdConnectContextEx cctx = 
+
+	if( LibLogitechInit() )
 	{
-		PLUGIN_NAME,				// appFriendlyName
-		false,						// isPersistent
-		false,						// isAutostartable
-		{ 0, 0 },					// onConfigure
-		LGLCD_INVALID_CONNECTION,	// connection
-		LGLCD_APPLET_CAP_BW,		// dwAppletCapabilitiesSupported
-		0,							// dwReserved1
-		{ 0, 0 }					// onNotify
-	};
-
-	retval = lgLcdConnectEx( &cctx );
-
-	if( ERROR_SUCCESS == retval )
-	{
-		m_Connection = cctx.connection;
-
-		lgLcdOpenByTypeContext octx = 
+		if( !LibLogitechConnect() )
 		{
-			m_Connection,
-			LGLCD_DEVICE_BW,
-			{ &OnSoftbuttonsCB, this },
-			0
-		};
-
-		if( ERROR_SUCCESS == lgLcdOpenByType( &octx ) )
-		{
-
-			m_Device = octx.device;
-
-			m_Initialized = true;
-		
-			Update();
-
+			m_Connection = LGLCD_INVALID_CONNECTION;
+			LogitechLcdWinamp::EnableWaitForLibTimer();
 		}
-	}
-	else
-	{
-		if( ERROR_SERVICE_NOT_ACTIVE == retval )
-		{
-			MessageBox( 0, _T("lgLcdConnectEx ---> ERROR_SERVICE_NOT_ACTIVE\n"), _T(""), MB_OK );
-		}
-
-		m_Connection = LGLCD_INVALID_CONNECTION;
 	}
 }
 
 
 ScreenManager::~ScreenManager()
 {
-	if( LGLCD_INVALID_DEVICE != m_Device )
-	{
-		lgLcdClose( m_Device );
-		m_Device = LGLCD_INVALID_DEVICE;
-	}
-	if( LGLCD_INVALID_CONNECTION != m_Connection )
-    {
-        lgLcdDisconnect( m_Connection );
-        m_Connection = LGLCD_INVALID_CONNECTION;
-    }
-
-	lgLcdDeInit();
+	LibLogitechClose();
+	LibLogitechDisconnect();
+	LibLogitechDeInit();
 
 	for( TextMap::iterator iter = m_Texts->begin(); iter != m_Texts->end(); ++iter )
 	{
@@ -96,18 +47,13 @@ void ScreenManager::Draw()
 
 void ScreenManager::Update( bool a_Draw, bool a_Priority )
 {
-	if( !m_Initialized ) return;
+	if( !m_Initialized || !m_Functioning || m_Disabled ) return;
 
 	if( a_Draw ) Draw();
 
-	DWORD retval = lgLcdUpdateBitmap( m_Device, m_Surface->Get(), a_Priority ? LGLCD_PRIORITY_ALERT : LGLCD_PRIORITY_NORMAL );
+	DWORD retval = lgLcdUpdateBitmap( m_Device, m_Surface->Get(), a_Priority ? LGLCD_PRIORITY_ALERT : m_Priority );
 
-	if( ERROR_SUCCESS != retval )
-	{
-		wchar_t str[MAX_PATH];
-		wsprintf( str, _T("Error %d"), retval );
-		MessageBox( 0, str, PLUGIN_NAME, MB_OK );
-	}
+	m_Functioning = retval == ERROR_SUCCESS;
 }
 
 void ScreenManager::SetString( TextID a_Id, wchar_t* a_Str )
@@ -119,8 +65,173 @@ void ScreenManager::SetString( TextID a_Id, wchar_t* a_Str )
 	}
 }
 
+#pragma region LibLogitech functions
 
-DWORD WINAPI OnSoftbuttonsCB(IN int device, IN DWORD dwButtons, IN const PVOID pContext)
+bool ScreenManager::LibLogitechInit()
+{
+	DWORD status = lgLcdInit();
+	return ERROR_SUCCESS == status || ERROR_ALREADY_INITIALIZED == status;
+}
+bool ScreenManager::LibLogitechDeInit()
+{
+	DWORD status = lgLcdDeInit();
+	return ERROR_SUCCESS == status;
+}
+
+bool ScreenManager::LibLogitechConnect()
+{
+	lgLcdConnectContextEx cctx = 
+	{
+		PLUGIN_NAME,				// appFriendlyName
+		false,						// isPersistent
+		false,						// isAutostartable
+		{ &OnConfigureCB, this },	// onConfigure
+		LGLCD_INVALID_CONNECTION,	// connection
+		LGLCD_APPLET_CAP_BW,		// dwAppletCapabilitiesSupported
+		0,							// dwReserved1
+		{ &OnNotificationCB, this }	// onNotify
+	};
+	
+	DWORD status = lgLcdConnectEx( &cctx );
+	if( ERROR_SUCCESS == status )
+	{
+		m_Connection = cctx.connection;
+		return true;
+	}
+	return false;
+}
+bool ScreenManager::LibLogitechDisconnect()
+{
+	if( LGLCD_INVALID_CONNECTION != m_Connection )
+    {
+        DWORD status = lgLcdDisconnect( m_Connection );
+        m_Connection = LGLCD_INVALID_CONNECTION;
+		return ERROR_SUCCESS == status;
+    }
+	return false;
+}
+
+bool ScreenManager::LibLogitechOpen()
+{
+	lgLcdOpenByTypeContext octx = 
+	{
+		m_Connection,
+		LGLCD_DEVICE_BW,
+		{ &OnSoftbuttonsCB, this },
+		0
+	};
+
+	DWORD status = lgLcdOpenByType( &octx );
+	if( ERROR_SUCCESS == status )
+	{
+		m_Device = octx.device;
+		return true;
+	}
+	return false;
+}
+bool ScreenManager::LibLogitechClose()
+{
+	if( LGLCD_INVALID_DEVICE != m_Device )
+	{
+		DWORD status = lgLcdClose( m_Device );
+		m_Device = LGLCD_INVALID_DEVICE;
+		return ERROR_SUCCESS == status;
+	}
+	return false;
+}
+
+void ScreenManager::LibLogitechSetForeground( bool a_Priority )
+{
+	lgLcdSetAsLCDForegroundApp( m_Device, a_Priority ? LGLCD_LCD_FOREGROUND_APP_YES : LGLCD_LCD_FOREGROUND_APP_NO );
+}
+
+void ScreenManager::LibReconnect()
+{
+	if( !LibLogitechConnect() )
+	{
+		m_Connection = LGLCD_INVALID_CONNECTION;
+	}
+}
+
+#pragma endregion
+
+#pragma region Configuration
+
+DWORD WINAPI OnConfigureCB( int device, const PVOID pContext )
+{
+	return static_cast<ScreenManager*>( pContext )->OnConfigureCallback( device );
+}
+
+DWORD ScreenManager::OnConfigureCallback( int device )
+{
+	if( device != m_Device ) return 0;
+	LogitechLcdWinamp::ShowMessage( _T("Don't configure me, bro!") );
+	return 0;
+}
+
+#pragma endregion
+
+#pragma region Notifications
+
+#pragma warning( disable: 4100 ) // unreferenced formal parameter
+DWORD WINAPI OnNotificationCB( IN int connection, IN const PVOID pContext, IN DWORD notificationCode, IN DWORD notifyParm1, IN DWORD notifyParm2, IN DWORD notifyParm3, IN DWORD notifyParm4 )
+{
+	return static_cast<ScreenManager*>( pContext )->OnNofificationCallback( connection, notificationCode, notifyParm1 );
+}
+#pragma warning( default: 4100 )
+
+DWORD ScreenManager::OnNofificationCallback( int connection, DWORD notificationCode, DWORD notifyParm1 )
+{
+	if( connection != m_Connection ) return 0;
+
+	switch( notificationCode )
+	{
+		case LGLCD_NOTIFICATION_DEVICE_ARRIVAL:
+			if( notifyParm1 == LGLCD_DEVICE_BW )
+			{
+				if( LibLogitechOpen() )
+				{
+					m_Initialized = true;
+					m_Functioning = true;
+		
+					Update();
+				}
+				else
+				{
+					m_Device = LGLCD_INVALID_DEVICE;
+				}
+			}
+			break;
+		case LGLCD_NOTIFICATION_DEVICE_REMOVAL:
+			if( notifyParm1 == LGLCD_DEVICE_BW )
+			{
+				LibLogitechClose();
+				m_Initialized = m_Functioning = false;
+			}
+			break;
+		case LGLCD_NOTIFICATION_APPLET_ENABLED:
+			m_Disabled = false;
+			//LibLogitechSetForeground( true );
+			Update( true, true );
+			break;
+		case LGLCD_NOTIFICATION_APPLET_DISABLED:
+			m_Disabled = true;
+			break;
+		case LGLCD_NOTIFICATION_CLOSE_CONNECTION:
+			m_Device = LGLCD_INVALID_DEVICE;
+			m_Connection = LGLCD_INVALID_CONNECTION;
+			m_Functioning = false;
+			LogitechLcdWinamp::EnableWaitForLibTimer();
+			break;
+	}
+	return 0;
+}
+
+#pragma endregion
+
+#pragma region Softbuttons
+
+DWORD WINAPI OnSoftbuttonsCB( IN int device, IN DWORD dwButtons, IN const PVOID pContext )
 {
 	return static_cast<ScreenManager*>(pContext)->OnSoftButtonsCallback( device, dwButtons );
 }
@@ -163,3 +274,5 @@ bool ScreenManager::ButtonPressed(int num)
 	}
 	return false;
 }
+
+#pragma endregion
