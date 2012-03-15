@@ -6,6 +6,7 @@
 #define MAIN_TIMER_ID (0xdecaf)
 #define CLOCK_TIMER_ID (0xcafe)
 #define EMAIL_TIMER_ID (0xeeee)
+#define TIMER_WAIT_FOR_LIB (0xaaaa)
 
 class LogitechLcdWinamp
 {
@@ -23,6 +24,8 @@ class LogitechLcdWinamp
 	void SetFilename( const wchar_t* filename );
 	void ProcessTimerMessage( WPARAM wParam );
 
+	void deinit();
+
 public:
 	static LogitechLcdWinamp* getInstance();
 	static void deleteInstance();
@@ -30,10 +33,12 @@ public:
 	int init( HWND );
 	void config();
 
-	void ShowMessage( LPCTSTR );
+	static void ShowMessage( LPCTSTR );
 
 	static void IPCMessage( DWORD lParam, DWORD wParam ) { getInstance()->ProcessIPCMessage( lParam, wParam ); }
 	static void TimerMessage( WPARAM wParam ) { getInstance()->ProcessTimerMessage( wParam ); }
 	static void SetString( TextID id, wchar_t* str ) { getInstance()->m_MainScreen->SetString( id, str ); }
 	static void Update() { getInstance()->m_MainScreen->Update(); }
+
+	static void EnableWaitForLibTimer() { SetTimer( getInstance()->m_Winamp, TIMER_WAIT_FOR_LIB, 1000, 0 ); }
 };

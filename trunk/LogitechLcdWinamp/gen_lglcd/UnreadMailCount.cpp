@@ -1,6 +1,17 @@
 #include "stdafx.h"
+#include <Shellapi.h>
 
 unsigned int UnreadMailCount()
+{
+	unsigned int total;
+	SYSTEMTIME st;
+	FILETIME ft;
+	GetSystemTime(&st);
+	SystemTimeToFileTime(&st, &ft);
+	SHGetUnreadMailCount(0,0, (PDWORD)&total, &ft, 0, 0);
+	return total;
+}
+unsigned int XUnreadMailCount()
 {
 	HKEY   hkey;
 	DWORD  dwDisposition;

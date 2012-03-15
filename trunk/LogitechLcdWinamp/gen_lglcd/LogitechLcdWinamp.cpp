@@ -18,16 +18,24 @@
 
 /* static */ void LogitechLcdWinamp::deleteInstance()
 {
-	delete s_Instance;
-	s_Instance = 0;
+	if( s_Instance != 0 )
+	{
+		delete s_Instance;
+		s_Instance = 0;
+	}
 }
 
-
-LogitechLcdWinamp::~LogitechLcdWinamp()
+void LogitechLcdWinamp::deinit()
 {
+	KillTimer( m_Winamp, MAIN_TIMER_ID );
 	KillTimer( m_Winamp, CLOCK_TIMER_ID );
 	KillTimer( m_Winamp, EMAIL_TIMER_ID );
 	delete m_MainScreen;
+}
+
+LogitechLcdWinamp::~LogitechLcdWinamp()
+{
+	deinit();
 }
 
 int LogitechLcdWinamp::init( HWND a_Winamp )
@@ -53,12 +61,12 @@ int LogitechLcdWinamp::init( HWND a_Winamp )
 
 void LogitechLcdWinamp::config()
 {
-	ShowMessage( _T("I don't want to be configured yet.") );
+	ShowMessage( _T("Why did you even bother clicking this button?") );
 }
 
 void LogitechLcdWinamp::ShowMessage( LPCTSTR msg )
 {
-	MessageBox( m_Winamp, msg, PLUGIN_NAME, MB_OK );
+	MessageBox( s_Instance->m_Winamp, msg, PLUGIN_NAME, MB_OK );
 }
 
 inline void format_time( int time, wchar_t* buff )
@@ -131,27 +139,25 @@ void LogitechLcdWinamp::ProcessTimerMessage( WPARAM wParam )
 	switch( wParam )
 	{
 		case MAIN_TIMER_ID:
-		{
-			int track_pos = SendIPCMessage( 0, IPC_GETOUTPUTTIME ) / 1000;
-			int track_length = SendIPCMessage( 1, IPC_GETOUTPUTTIME );
+			{
+				int track_pos = SendIPCMessage( 0, IPC_GETOUTPUTTIME ) / 1000;
+				int track_length = SendIPCMessage( 1, IPC_GETOUTPUTTIME );
 
-			format_time( track_pos, buff );
-			m_MainScreen->SetString( TXT_TIME_POS, buff );
+				format_time( track_pos, buff );
+				m_MainScreen->SetString( TXT_TIME_POS, buff );
 				
-			m_MainScreen->SetProgress( track_pos, 0, track_length );
+				m_MainScreen->SetProgress( track_pos, 0, track_length );
 
-			int state = SendIPCMessage( 0, IPC_ISPLAYING );
+				int state = SendIPCMessage( 0, IPC_ISPLAYING );
 
-			if( state > 0 )
-				SetTimer( m_Winamp, MAIN_TIMER_ID, 100, 0 );
-			else
-				KillTimer( m_Winamp, MAIN_TIMER_ID );
+				if( state > 0 )
+					SetTimer( m_Winamp, MAIN_TIMER_ID, 100, 0 );
+				else
+					KillTimer( m_Winamp, MAIN_TIMER_ID );
 
-			m_MainScreen->SetPlayingState( state );
-
+				m_MainScreen->SetPlayingState( state );
+			}
 			m_MainScreen->Update();
-
-		}
 			break;
 		case CLOCK_TIMER_ID:
 			time_t rawtime;
@@ -165,6 +171,9 @@ void LogitechLcdWinamp::ProcessTimerMessage( WPARAM wParam )
 			break;
 		case EMAIL_TIMER_ID:
 			m_MainScreen->UpdateMailCount();
+			break;
+		case TIMER_WAIT_FOR_LIB:
+			m_MainScreen->LibReconnect();
 			break;
 	}
 }
