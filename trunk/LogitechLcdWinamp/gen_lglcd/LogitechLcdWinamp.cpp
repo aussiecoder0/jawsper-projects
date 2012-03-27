@@ -165,12 +165,13 @@ void LogitechLcdWinamp::ProcessTimerMessage( WPARAM wParam )
 			time( &rawtime );
 			localtime_s( &timeinfo, &rawtime );
 			wcsftime( buff, 1024, _T("%X"), &timeinfo );
-
+			
 			m_MainScreen->SetString( TXT_CLOCK, buff );
 			m_MainScreen->Update();
 			break;
 		case EMAIL_TIMER_ID:
 			m_MainScreen->UpdateMailCount();
+			m_MainScreen->Update();
 			break;
 		case TIMER_WAIT_FOR_LIB:
 			m_MainScreen->LibReconnect();

@@ -28,6 +28,7 @@ protected:
 
 	void			Init(int);
 	virtual void	InitCharset() = 0;
+	FontChar*		FindChar( wchar_t c );
 	void			SetChar( wchar_t p, wchar_t* c );
 	void			SetChar( wchar_t from, wchar_t to );
 

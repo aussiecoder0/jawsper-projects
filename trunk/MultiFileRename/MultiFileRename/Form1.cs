@@ -21,11 +21,11 @@ namespace EpisodeRename
         {
             InitializeComponent();
 
-            SetFolder(@"Y:\TV\sb\");
+            SetFolder(@"Y:\complete\TV\");
             SetPattern(@"\.(mkv|avi)$");
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btnSelectFolder_Click(object sender, EventArgs e)
         {
             if (DialogResult.OK == folderBrowserDialog1.ShowDialog())
             {
@@ -59,7 +59,7 @@ namespace EpisodeRename
             return list;//.OrderBy(x => x.Name).ToList();
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void btnScan_Click(object sender, EventArgs e)
         {
             if (!(folder is DirectoryInfo) || !folder.Exists) return;
 
@@ -101,18 +101,34 @@ namespace EpisodeRename
             }
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void btnRename_Click(object sender, EventArgs e)
         {
-            foreach (var tb in panel1.Controls.OfType<TextBox>())
+            string from = txtRenameFrom.Text;
+            string to = txtRenameTo.Text;
+            if (from.Length == 0 && to.Length == 0) return;
+            foreach (var tb in panel1.Controls.OfType<TextBox>().Where(tb => tb.Tag is FileInfo))
             {
-                if (tb.Tag is FileInfo)
+                if (chkRenameRegex.Checked)
                 {
-                    var fi = tb.Tag as FileInfo;
-                    var new_name = tb.Text;
-                    if (fi.Name.Equals(new_name)) continue;
-                    var dir = fi.DirectoryName;
-                    fi.MoveTo(dir + Path.DirectorySeparatorChar + new_name);
+                    var rx = new Regex(from);
+                    tb.Text = rx.Replace(tb.Text, to);
                 }
+                else
+                {
+                    tb.Text = tb.Text.Replace(from, to);
+                }
+            }
+        }
+
+        private void btnSaveChanges_Click(object sender, EventArgs e)
+        {
+            foreach (var tb in panel1.Controls.OfType<TextBox>().Where(tb => tb.Tag is FileInfo))
+            {
+                var fi = tb.Tag as FileInfo;
+                var new_name = tb.Text;
+                if (fi.Name.Equals(new_name)) continue;
+                var dir = fi.DirectoryName;
+                fi.MoveTo(dir + Path.DirectorySeparatorChar + new_name);
             }
         }
     }
