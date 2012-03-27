@@ -40,31 +40,31 @@ Font::~Font()
 	}
 }
 
-FontChar* FindChar( FontMap& map, const wchar_t c )
+FontChar* Font::FindChar( const wchar_t c )
 {
-	for( FontMap::iterator it = map.begin(); it != map.end(); ++it )
+	for( FontMap::const_iterator it = m_FontMap.begin(), n = m_FontMap.end(); it != n; it++ )
 	{
-		if( *it != 0 && (*it)->m_Char == c ) return *it;
+		if( (*it)->m_Char == c ) return *it;
 	}
 	return 0;
 }
 
 wchar_t* Font::GetChar( const wchar_t c, int& w, int& h )
 {	
-	FontChar* chr = FindChar( m_FontMap, c );
+	FontChar* chr = FindChar( c );
 
-	if( c == 0 )
+	if( chr == 0 )
 	{
 		FontRemap::const_iterator re_it = m_FontRemap.find( c );
 		if( re_it != m_FontRemap.end() )
 		{
-			chr = FindChar( m_FontMap, re_it->second );
+			chr = FindChar( re_it->second );
 			if( chr == 0 )
-				chr = *(m_FontMap.begin());
+				chr = m_FontMap[0];
 		}
 		else
 		{
-			chr = *(m_FontMap.begin());
+			chr = m_FontMap[0];
 		}
 	}
 	w = chr->m_Width;
@@ -236,6 +236,7 @@ void Font7x5::InitCharset()
 	SetChar( L'ú', L"::o"   L":o:"   L":::"   L"o:o"   L"o:o"   L":oo"   L":::"   );
 
 	SetChar( L'æ', L":::::" L":::::" L"oo:o:" L"::o:o" L"o:o::" L":o:oo" L":::::" );
+	SetChar( L'œ', L":::::" L":::::" L":o:o:" L"o:o:o" L"o:o::" L":o:oo" L":::::" );
 }
 
 void Font7x5Time::InitCharset()

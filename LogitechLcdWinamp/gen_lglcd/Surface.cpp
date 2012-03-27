@@ -156,7 +156,7 @@ void output_bmp( ofstream &, unsigned char* buff, size_t width, size_t height );
 
 void Surface::Save( const wchar_t* a_File )
 {
-	ofstream f( a_File, ios::out | ios::trunc | ios::binary );
+	/*ofstream f( a_File, ios::out | ios::trunc | ios::binary );
 
 	if( f.is_open() )
 	{
@@ -167,7 +167,7 @@ void Surface::Save( const wchar_t* a_File )
 		MessageBox( 0, _T("no open"), _T(""), MB_OK );
 	}
 
-	f.close();
+	f.close();*/
 }
 
 void Surface::CopyTo( Surface* a_Dst, int a_X, int a_Y, Pixel* a_AlphaColour )
