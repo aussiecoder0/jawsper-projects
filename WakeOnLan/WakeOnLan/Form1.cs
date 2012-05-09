@@ -26,10 +26,10 @@ namespace WakeOnLan
             {
                 buff[i] = Convert.ToByte(mac_str.Substring(2 * i, 2), 16);
             }
-            WOL(buff);
+            WOL(mtxtIP.Text, int.Parse(mtxtPort.Text), buff);
         }
 
-        void WOL(byte[] mac)
+        void WOL(string ip, int port, byte[] mac)
         {
             var packet = new byte[102];
             int i = 0;
@@ -43,7 +43,7 @@ namespace WakeOnLan
             }
 
             var sock = new UdpClient();
-            var remoteEP = new IPEndPoint(IPAddress.Broadcast, 7);
+            var remoteEP = new IPEndPoint(IPAddress.Parse(ip), port);
             sock.Send(packet, packet.Length, remoteEP);
         }
     }

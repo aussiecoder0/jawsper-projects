@@ -30,11 +30,13 @@
         {
             this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
+            this.mtxtPort = new System.Windows.Forms.MaskedTextBox();
+            this.mtxtIP = new System.Windows.Forms.MaskedTextBox();
             this.SuspendLayout();
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(90, 39);
+            this.button1.Location = new System.Drawing.Point(104, 65);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 0;
@@ -44,17 +46,37 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(13, 13);
+            this.textBox1.Location = new System.Drawing.Point(169, 12);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(259, 20);
+            this.textBox1.Size = new System.Drawing.Size(103, 20);
             this.textBox1.TabIndex = 1;
             this.textBox1.Text = "001bfc929660";
+            // 
+            // mtxtPort
+            // 
+            this.mtxtPort.Location = new System.Drawing.Point(119, 12);
+            this.mtxtPort.Mask = "99990";
+            this.mtxtPort.Name = "mtxtPort";
+            this.mtxtPort.Size = new System.Drawing.Size(44, 20);
+            this.mtxtPort.TabIndex = 4;
+            this.mtxtPort.Text = "22";
+            // 
+            // mtxtIP
+            // 
+            this.mtxtIP.Culture = new System.Globalization.CultureInfo("en-US");
+            this.mtxtIP.Location = new System.Drawing.Point(13, 12);
+            this.mtxtIP.Mask = "990.990.990.990";
+            this.mtxtIP.Name = "mtxtIP";
+            this.mtxtIP.Size = new System.Drawing.Size(100, 20);
+            this.mtxtIP.TabIndex = 5;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 262);
+            this.Controls.Add(this.mtxtIP);
+            this.Controls.Add(this.mtxtPort);
             this.Controls.Add(this.textBox1);
             this.Controls.Add(this.button1);
             this.Name = "Form1";
@@ -68,6 +90,8 @@
 
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.MaskedTextBox mtxtPort;
+        private System.Windows.Forms.MaskedTextBox mtxtIP;
     }
 }
 
