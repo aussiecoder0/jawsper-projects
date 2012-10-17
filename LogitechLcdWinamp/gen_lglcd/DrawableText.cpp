@@ -1,5 +1,4 @@
 #include "Stdafx.h"
-#include "ScreenManager.h"
 
 void DrawableText::SetText( const wchar_t* a_Str )
 {

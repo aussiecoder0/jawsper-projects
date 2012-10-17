@@ -1,6 +1,8 @@
 #include "stdafx.h"
 
-MainScreen::MainScreen() : ScreenManager(), m_HasMail( false )
+#define VK_J 0x4A
+
+MainScreen::MainScreen() : LcdScreen(), m_HasMail( false )
 {
 	m_Font = new Font7x5();
 	m_TimeFont = new Font7x5Time();
@@ -70,12 +72,13 @@ void MainScreen::ButtonsUpdate()
 	if( ButtonPressed( 3 ) )
 	{
 		// 0x4A == J
-		keybd_event( VK_CONTROL, 0, 0, 0 );
-		keybd_event( VK_MENU, 0, 0, 0 );
-		keybd_event( 0x4A, 0, 0, 0 );
-		keybd_event( 0x4A, 0, KEYEVENTF_KEYUP, 0 );
-		keybd_event( VK_MENU, 0, KEYEVENTF_KEYUP, 0 );
-		keybd_event( VK_CONTROL, 0, KEYEVENTF_KEYUP, 0 );
+		
+		keybd_event(VK_CONTROL, 0, 0, 0);
+		keybd_event(VK_MENU, 0, 0, 0);
+		keybd_event(VK_J, 0, 0, 0);
+		keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event(VK_MENU, 0, KEYEVENTF_KEYUP, 0);
+		keybd_event(VK_J, 0, KEYEVENTF_KEYUP, 0);
 	}
 }
 

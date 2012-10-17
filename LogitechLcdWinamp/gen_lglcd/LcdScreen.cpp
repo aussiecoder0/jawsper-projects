@@ -1,7 +1,7 @@
 #include "StdAfx.h"
-#include "ScreenManager.h"
+#include "LcdScreen.h"
 
-ScreenManager::ScreenManager() : 
+LcdScreen::LcdScreen() : 
 		m_Initialized( false ), m_Functioning( false ), 
 		m_Disabled( true ), m_Priority( LGLCD_PRIORITY_NORMAL )
 {
@@ -22,7 +22,7 @@ ScreenManager::ScreenManager() :
 }
 
 
-ScreenManager::~ScreenManager()
+LcdScreen::~LcdScreen()
 {
 	LibLogitechClose();
 	LibLogitechDisconnect();
@@ -37,7 +37,7 @@ ScreenManager::~ScreenManager()
 	delete m_Surface;
 }
 
-void ScreenManager::Draw()
+void LcdScreen::Draw()
 {
 	for( TextMap::iterator iter = m_Texts->begin(); iter != m_Texts->end(); iter++ )
 	{
@@ -45,7 +45,7 @@ void ScreenManager::Draw()
 	}
 }
 
-void ScreenManager::Update( bool a_Draw, bool a_Priority )
+void LcdScreen::Update( bool a_Draw, bool a_Priority )
 {
 	if( !m_Initialized || !m_Functioning || m_Disabled ) return;
 
@@ -56,7 +56,7 @@ void ScreenManager::Update( bool a_Draw, bool a_Priority )
 	m_Functioning = retval == ERROR_SUCCESS;
 }
 
-void ScreenManager::SetString( TextID a_Id, wchar_t* a_Str )
+void LcdScreen::SetString( TextID a_Id, wchar_t* a_Str )
 {
 	TextMap::iterator iter = m_Texts->find( a_Id );
 	if( iter != m_Texts->end() )
@@ -67,18 +67,18 @@ void ScreenManager::SetString( TextID a_Id, wchar_t* a_Str )
 
 #pragma region LibLogitech functions
 
-bool ScreenManager::LibLogitechInit()
+bool LcdScreen::LibLogitechInit()
 {
 	DWORD status = lgLcdInit();
 	return ERROR_SUCCESS == status || ERROR_ALREADY_INITIALIZED == status;
 }
-bool ScreenManager::LibLogitechDeInit()
+bool LcdScreen::LibLogitechDeInit()
 {
 	DWORD status = lgLcdDeInit();
 	return ERROR_SUCCESS == status;
 }
 
-bool ScreenManager::LibLogitechConnect()
+bool LcdScreen::LibLogitechConnect()
 {
 	lgLcdConnectContextEx cctx = 
 	{
@@ -100,7 +100,7 @@ bool ScreenManager::LibLogitechConnect()
 	}
 	return false;
 }
-bool ScreenManager::LibLogitechDisconnect()
+bool LcdScreen::LibLogitechDisconnect()
 {
 	if( LGLCD_INVALID_CONNECTION != m_Connection )
     {
@@ -111,7 +111,7 @@ bool ScreenManager::LibLogitechDisconnect()
 	return false;
 }
 
-bool ScreenManager::LibLogitechOpen()
+bool LcdScreen::LibLogitechOpen()
 {
 	lgLcdOpenByTypeContext octx = 
 	{
@@ -129,7 +129,7 @@ bool ScreenManager::LibLogitechOpen()
 	}
 	return false;
 }
-bool ScreenManager::LibLogitechClose()
+bool LcdScreen::LibLogitechClose()
 {
 	if( LGLCD_INVALID_DEVICE != m_Device )
 	{
@@ -140,12 +140,12 @@ bool ScreenManager::LibLogitechClose()
 	return false;
 }
 
-void ScreenManager::LibLogitechSetForeground( bool a_Priority )
+void LcdScreen::LibLogitechSetForeground( bool a_Priority )
 {
 	lgLcdSetAsLCDForegroundApp( m_Device, a_Priority ? LGLCD_LCD_FOREGROUND_APP_YES : LGLCD_LCD_FOREGROUND_APP_NO );
 }
 
-void ScreenManager::LibReconnect()
+void LcdScreen::LibReconnect()
 {
 	if( !LibLogitechConnect() )
 	{
@@ -159,10 +159,10 @@ void ScreenManager::LibReconnect()
 
 DWORD WINAPI OnConfigureCB( int device, const PVOID pContext )
 {
-	return static_cast<ScreenManager*>( pContext )->OnConfigureCallback( device );
+	return static_cast<LcdScreen*>( pContext )->OnConfigureCallback( device );
 }
 
-DWORD ScreenManager::OnConfigureCallback( int device )
+DWORD LcdScreen::OnConfigureCallback( int device )
 {
 	if( device != m_Device ) return 0;
 	LogitechLcdWinamp::ShowMessage( _T("Don't configure me, bro!") );
@@ -176,11 +176,11 @@ DWORD ScreenManager::OnConfigureCallback( int device )
 #pragma warning( disable: 4100 ) // unreferenced formal parameter
 DWORD WINAPI OnNotificationCB( IN int connection, IN const PVOID pContext, IN DWORD notificationCode, IN DWORD notifyParm1, IN DWORD notifyParm2, IN DWORD notifyParm3, IN DWORD notifyParm4 )
 {
-	return static_cast<ScreenManager*>( pContext )->OnNofificationCallback( connection, notificationCode, notifyParm1 );
+	return static_cast<LcdScreen*>( pContext )->OnNofificationCallback( connection, notificationCode, notifyParm1 );
 }
 #pragma warning( default: 4100 )
 
-DWORD ScreenManager::OnNofificationCallback( int connection, DWORD notificationCode, DWORD notifyParm1 )
+DWORD LcdScreen::OnNofificationCallback( int connection, DWORD notificationCode, DWORD notifyParm1 )
 {
 	if( connection != m_Connection ) return 0;
 
@@ -233,10 +233,10 @@ DWORD ScreenManager::OnNofificationCallback( int connection, DWORD notificationC
 
 DWORD WINAPI OnSoftbuttonsCB( IN int device, IN DWORD dwButtons, IN const PVOID pContext )
 {
-	return static_cast<ScreenManager*>(pContext)->OnSoftButtonsCallback( device, dwButtons );
+	return static_cast<LcdScreen*>(pContext)->OnSoftButtonsCallback( device, dwButtons );
 }
 
-DWORD ScreenManager::OnSoftButtonsCallback( int device, DWORD dwButtons )
+DWORD LcdScreen::OnSoftButtonsCallback( int device, DWORD dwButtons )
 {
 	if( m_Device != device ) return 0;
 
@@ -265,7 +265,7 @@ DWORD ScreenManager::OnSoftButtonsCallback( int device, DWORD dwButtons )
 	return 0;
 }
 
-bool ScreenManager::ButtonPressed(int num)
+bool LcdScreen::ButtonPressed(int num)
 {
 	if( m_ButtonsPressed[num % 4] )
 	{

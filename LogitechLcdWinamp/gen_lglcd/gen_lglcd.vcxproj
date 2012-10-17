@@ -93,7 +93,7 @@
     <ClInclude Include="LogitechLcdWinamp.h" />
     <ClInclude Include="MailCount.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="ScreenManager.h" />
+    <ClInclude Include="LcdScreen.h" />
     <ClInclude Include="Screens.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="Surface.h" />
@@ -107,7 +107,7 @@
     <ClCompile Include="LogitechLcdWinamp.cpp" />
     <ClCompile Include="MainScreen.cpp" />
     <ClCompile Include="output_bmp.cpp" />
-    <ClCompile Include="ScreenManager.cpp" />
+    <ClCompile Include="LcdScreen.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
