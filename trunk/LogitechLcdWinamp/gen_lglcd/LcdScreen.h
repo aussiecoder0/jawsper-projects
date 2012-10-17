@@ -16,7 +16,7 @@ DWORD WINAPI OnConfigureCB( IN int connection, IN const PVOID pContext );
 DWORD WINAPI OnNotificationCB( IN int connection, IN const PVOID pContext, IN DWORD notificationCode, IN DWORD notifyParm1, IN DWORD notifyParm2, IN DWORD notifyParm3, IN DWORD notifyParm4 );
 DWORD WINAPI OnSoftbuttonsCB(IN int device, IN DWORD dwButtons, IN const PVOID pContext);
 
-/* abstract */ class ScreenManager
+/* abstract */ class LcdScreen
 {
 protected:
 	int m_Connection;
@@ -45,8 +45,8 @@ protected:
 
 	virtual void ButtonsUpdate() = 0;
 public:
-	ScreenManager();
-	virtual ~ScreenManager();
+	LcdScreen();
+	virtual ~LcdScreen();
 
 	void Update( bool draw = true, bool priority = false );
 

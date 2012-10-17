@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ScreenManager.h"
+#include "LcdScreen.h"
 
-class MainScreen : public ScreenManager
+class MainScreen : public LcdScreen
 {
 protected:
 	Font* m_Font;
