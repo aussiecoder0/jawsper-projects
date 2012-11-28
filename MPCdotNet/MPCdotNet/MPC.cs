@@ -196,6 +196,7 @@ namespace MPCdotNet
 
         public void SendPlaybackCommand(PlaybackCommand key, string args = "" )
         {
+            if (!Connected) return;
             switch (key)
             {
                 case PlaybackCommand.Pause:
