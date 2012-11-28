@@ -113,6 +113,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MediakeyHook.cs" />
     <Compile Include="View\Form1.ButtonEvents.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
       <SubType>Form</SubType>
@@ -201,10 +202,6 @@
     <ProjectReference Include="..\LogitechLCD\LogitechLCD.csproj">
       <Project>{A39FAC86-4811-4465-899C-3C28CE9903F1}</Project>
       <Name>LogitechLCD</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\MouseKeyboardActivityMonitor\MouseKeyboardActivityMonitor.csproj">
-      <Project>{F52AA97E-180A-40ED-8F2B-09080171D6C7}</Project>
-      <Name>MouseKeyboardActivityMonitor</Name>
     </ProjectReference>
     <ProjectReference Include="..\MPCdotNet\MPCdotNet.csproj">
       <Project>{B0EB9A72-080F-41E3-9649-247A593A3507}</Project>

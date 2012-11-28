@@ -1,13 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
-using MouseKeyboardActivityMonitor;
-using MouseKeyboardActivityMonitor.WinApi;
 
 namespace MPCdotNet.Client
 {
-    public partial class Program : IObservable<MPCEvent>
+    public partial class Program
     {
         /// <summary>
         /// The main entry point for the application.
@@ -18,7 +14,7 @@ namespace MPCdotNet.Client
             new Program();
         }
 
-        private KeyboardHookListener m_KeyboardListener;
+        private KeyboardListener m_KeyboardListener;
         private MPC mpc;
         private LCD lcd;
         private Timer timer;
@@ -34,9 +30,8 @@ namespace MPCdotNet.Client
             timer.Tick += new EventHandler(timer_Tick);
             timer.Interval = 100;
 
-            m_KeyboardListener = new KeyboardHookListener(new GlobalHooker());
-            m_KeyboardListener.Enabled = true;
-            m_KeyboardListener.KeyDown += new KeyEventHandler(m_KeyboardListener_KeyDown);
+            m_KeyboardListener = new KeyboardListener(Keys.MediaPlayPause, Keys.MediaStop, Keys.MediaPreviousTrack, Keys.MediaNextTrack);
+            m_KeyboardListener.KeyDown += m_KeyboardListener_KeyDown;
 
             mpc = new MPC(Properties.Settings.Default.Server1);
 
@@ -113,15 +108,7 @@ namespace MPCdotNet.Client
             lcd.Update();
         }
 
-        private List<IObserver<MPCEvent>> observers = new List<IObserver<MPCEvent>>();
-        public IDisposable Subscribe(IObserver<MPCEvent> observer)
-        {
-            if (!observers.Contains(observer))
-                observers.Add(observer);
-            return null;
-        }
-
-        void m_KeyboardListener_KeyDown(object sender, KeyEventArgs e)
+        void m_KeyboardListener_KeyDown(object sender, RawKeyEventArgs e)
         {
             switch (e.KeyCode)
             {
@@ -137,33 +124,6 @@ namespace MPCdotNet.Client
                 case Keys.MediaStop:
                     mpc.SendPlaybackCommand(PlaybackCommand.Stop);
                     break;
-            }
-        }
-
-        void mpc_OnStatusUpdated()
-        {
-            var e = new MPCEvent() { MPC = this.mpc, Event = MPCEventType.Status };
-            foreach (var o in observers)
-            {
-                o.OnNext(e);
-            }
-            
-
-            lcd.Update();
-        }
-
-        void mpc_OnTrackChange()
-        {
-            Console.WriteLine("mpc_OnTrackChange({0}); new_id: {1}", mpc.PreviousStatus.Song, mpc.CurrentStatus.Song);
-        }
-
-        void mpc_OnPlaylistChange()
-        {
-            Console.WriteLine("mpc_OnPlaylistChange");
-            var e = new MPCEvent() { MPC = this.mpc, Event = MPCEventType.PlaylistChange };
-            foreach (var o in observers)
-            {
-                o.OnNext(e);
             }
         }
     }

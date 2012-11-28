@@ -1,9 +1,5 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Windows.Forms;
-using LogitechLCD;
-using MouseKeyboardActivityMonitor;
-using MouseKeyboardActivityMonitor.WinApi;
 
 namespace MPCdotNet.Client
 {
