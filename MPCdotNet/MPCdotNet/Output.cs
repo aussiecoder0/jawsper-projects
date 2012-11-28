@@ -5,21 +5,25 @@ using System.Text;
 
 namespace MPCdotNet
 {
-    public class Output
+    partial class MPC
     {
-        private int m_ID;
-        private string m_Name;
-        private bool m_Enabled;
-        public Output(int id, string name, bool enabled)
+        public class Output
         {
-            m_ID = id;
-            m_Name = name;
-            m_Enabled = enabled;
-        }
+            public Output(int id, string name, bool enabled)
+            {
+                ID = id;
+                Name = name;
+                Enabled = enabled;
+            }
 
-        public override string ToString()
-        {
-            return String.Format("Output {{ id: {0}; name: \"{1}\"; enabled: {2} }}", m_ID, m_Name, m_Enabled);
+            public int ID { get; private set; }
+            public string Name { get; private set; }
+            public bool Enabled { get; private set; }
+
+            public override string ToString()
+            {
+                return String.Format("Output {{ id: {0}; name: \"{1}\"; enabled: {2} }}", ID, Name, Enabled);
+            }
         }
     }
 }
