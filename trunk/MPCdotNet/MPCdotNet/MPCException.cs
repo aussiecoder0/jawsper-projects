@@ -3,8 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace MPCdotNet
 {
-
-    internal class MPCException : Exception
+    public class MPCException : Exception
     {
         int error;
         int command_listNum;

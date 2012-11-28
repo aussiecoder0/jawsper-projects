@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("MPCdotNetClient")]
+[assembly: AssemblyTitle("LogitechLCD")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Jawsper")]
-[assembly: AssemblyProduct("MPCdotNetClient")]
-[assembly: AssemblyCopyright("Copyright © Jawsper 2012")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("LogitechLCD")]
+[assembly: AssemblyCopyright("Copyright ©  2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("39d14adc-ae0d-45b4-8e65-07762d522c6a")]
+[assembly: Guid("d0da1cf3-cefa-41f7-929e-dd4f5a9dbd58")]
 
 // Version information for an assembly consists of the following four values:
 //

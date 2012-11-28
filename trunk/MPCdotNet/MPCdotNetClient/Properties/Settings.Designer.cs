@@ -25,25 +25,25 @@ namespace MPCdotNet.Client.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("2001:1af8:fe00:8328::1")]
-        public string Server {
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool AutoConnect {
             get {
-                return ((string)(this["Server"]));
+                return ((bool)(this["AutoConnect"]));
             }
             set {
-                this["Server"] = value;
+                this["AutoConnect"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("6600")]
-        public int Port {
+        [global::System.Configuration.DefaultSettingValueAttribute("2001:1af8:fe00:8328::1,6600")]
+        public global::MPCdotNet.Server Server1 {
             get {
-                return ((int)(this["Port"]));
+                return ((global::MPCdotNet.Server)(this["Server1"]));
             }
             set {
-                this["Port"] = value;
+                this["Server1"] = value;
             }
         }
     }
