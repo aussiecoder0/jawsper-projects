@@ -109,6 +109,8 @@
     <Compile Include="MonochromeLCDDisplay.cs" />
     <Compile Include="LCDDisplay.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Surface\DrawableProgressBar.cs" />
+    <Compile Include="Surface\Drawable.cs" />
     <Compile Include="Surface\DrawableText.cs" />
     <Compile Include="Surface\Font.cs" />
     <Compile Include="Surface\Fonts.cs" />

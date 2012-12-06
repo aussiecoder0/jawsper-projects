@@ -4,8 +4,8 @@ namespace LogitechLCD
 {
     public class Surface
     {
-        public const int PIXEL_ON = 128;
-        public const int PIXEL_OFF = 0;
+        public const byte PIXEL_ON = 128;
+        public const byte PIXEL_OFF = 0;
 
         byte[] m_Buffer;
         int m_Width, m_Height, m_Pitch;
@@ -101,7 +101,7 @@ namespace LogitechLCD
                     {
                         if (c[cpos++] == 'o' && xpos + h <= max_x)
                         {
-                            m_Buffer[a + h] = colour;//, *(a + h + LCD_P) = 0;
+                            m_Buffer[a + h] = colour;
                         }
                     }
                     a += m_Pitch;

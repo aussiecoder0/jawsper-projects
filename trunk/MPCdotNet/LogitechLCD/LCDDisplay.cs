@@ -13,25 +13,10 @@ namespace LogitechLCD
 {
     public abstract class LCDDisplay : MonochromeLCDDisplay
     {
-        protected string friendlyName;
-        protected BackgroundWorker worker;
-        protected Dictionary<int, DrawableText> m_TextMap = new Dictionary<int, DrawableText>();
+        protected Dictionary<int, Drawable> m_Drawables = new Dictionary<int, Drawable>();
 
-        public LCDDisplay(string friendlyName, IntPtr handle)
-            : base(friendlyName, handle)
-        {
-            this.friendlyName = friendlyName;
-            worker = new BackgroundWorker();
-            worker.DoWork += new DoWorkEventHandler(worker_DoWork);
-            worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(worker_RunWorkerCompleted);
-        }
-
-        void worker_DoWork(object sender, DoWorkEventArgs e)
-        {
-            if (UpdateLcdScreen != null) UpdateLcdScreen(this, null);
-        }
-
-        void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        public LCDDisplay(string friendlyName, bool autoStartable)
+            : base(friendlyName, autoStartable)
         {
         }
 
@@ -61,9 +46,9 @@ namespace LogitechLCD
 
         protected void Draw()
         {
-            foreach (var text in m_TextMap)
+            foreach (var item in m_Drawables.OrderBy(i => i.Key))
             {
-                text.Value.Draw(Surface);
+                item.Value.Draw(Surface);
             }
         }
 
@@ -71,6 +56,14 @@ namespace LogitechLCD
         {
             Draw();
             if (UpdateLcdScreen != null) UpdateLcdScreen(this, null);
+        }
+
+        public void SetText(int id, string value)
+        {
+            if (m_Drawables.ContainsKey(id) && m_Drawables[id] is DrawableText)
+            {
+                (m_Drawables[id] as DrawableText).Text = value;
+            }
         }
     }
 }

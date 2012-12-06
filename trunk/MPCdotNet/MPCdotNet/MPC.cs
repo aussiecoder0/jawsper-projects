@@ -24,8 +24,14 @@ namespace MPCdotNet
         public MPC(string host, int port)
         {
             s = new ServerComponent(host, port);
+            s.Disconnected += new EventHandler(s_Disconnected);
             CurrentStatus = new Status();
             CurrentPlaylist = new Playlist();
+        }
+
+        void s_Disconnected(object sender, EventArgs e)
+        {
+            Close();
         }
 
         public void Open()
@@ -83,6 +89,7 @@ namespace MPCdotNet
             Outputs = new List<Output>();
 
             var list = s.SendCommand("outputs");
+            if (list == null) return;
             int id = 0; string name = "";
             foreach (var kv in list)
             {
