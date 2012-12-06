@@ -49,10 +49,10 @@ namespace MPCdotNet.Client
             singleModeToolStripMenuItem.Checked = mpc.CurrentStatus.Single;
             consumeModeToolStripMenuItem.Checked = mpc.CurrentStatus.Consume;
 
-            if (mpc.CurrentStatus.PlaybackState != PlaybackState.Stopped)
+            if (mpc.CurrentStatus.PlaybackState == PlaybackState.Playing || mpc.CurrentStatus.PlaybackState == PlaybackState.Paused)
             {
-                trackBarWithTimeLabels1.Maximum = mpc.CurrentStatus.Time[1];
-                trackBarWithTimeLabels1.Value = mpc.CurrentStatus.Time[0];
+                trackBarWithTimeLabels1.Maximum = mpc.CurrentStatus.Time.Total;
+                trackBarWithTimeLabels1.Value = mpc.CurrentStatus.Time.Current;
             }
             else
             {

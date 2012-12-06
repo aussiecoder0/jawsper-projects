@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.ComponentModel;
 
 namespace MPCdotNet
 {
@@ -72,7 +73,7 @@ namespace MPCdotNet
                 {
                     var raw = Regex.Match(value, @"^(\d+):(\d+)$");
                     if(raw.Success)
-                        Time = new int[] { int.Parse(raw.Groups[1].Value), int.Parse(raw.Groups[2].Value) };
+                        Time = new SongTime() { Current = int.Parse(raw.Groups[1].Value), Total = int.Parse(raw.Groups[2].Value) };
                 }
                 else if (key == "elapsed")
                 {
@@ -133,7 +134,7 @@ namespace MPCdotNet
             public int SongID { get; private set; }
             public int NextSong { get; private set; }
             public int NextSongID { get; private set; }
-            public int[] Time { get; private set; }
+            public SongTime Time { get; private set; }
             public float Elapsed { get; private set; }
             public int Bitrate { get; private set; }
             public float CrossFade { get; private set; }

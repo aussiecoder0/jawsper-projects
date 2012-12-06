@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using LogitechLCD;
+using System.Windows.Forms;
 
 namespace MPCdotNet.Client
 {
     public class LCD : LCDDisplay
     {
+        private const int ID_PROGRESS_BAR = -1;
+
         private const int ID_ARTIST = 0;
         private const int ID_PL_DISP = 1;
         private const int ID_TITLE = 2;
@@ -21,55 +24,68 @@ namespace MPCdotNet.Client
         private Font m_MainFont = new Font7x5();
         private Font m_TimeFont = new Font7x5Time();
 
-        public LCD(string name)
-            : base(name, IntPtr.Zero)
+        public LCD(string friendlyName, bool autoStartable)
+            : base(friendlyName, autoStartable)
         {
+            if (Device == null) return;
             Surface.Clear();
 
-            Surface.BoxAbs(0, Surface.Height - 1 - 5, Surface.Width - 1, Surface.Height - 1);
+            int y = 0;
 
-            AddText(ID_ARTIST, 0, 0, Surface.Width);
-            AddTextTime(ID_PL_DISP, Surface.Width, 0, -53);
+            AddText(ID_ARTIST, 0, y, Surface.Width);
+            AddTextTime(ID_PL_DISP, Surface.Width, y, -53);
+            y += 8;
 
-            AddText(ID_TITLE, 0, 8, Surface.Width);
+            AddText(ID_TITLE, 0, y, Surface.Width);
+            y += 8;
 
-            AddText(ID_ALBUM, 0, 16, Surface.Width);
+            AddText(ID_ALBUM, 0, y, Surface.Width);
+            y += 8;
 
-            AddText(ID_STATUS, 0, 23, 80);
-            AddText(ID_EMAIL, Surface.Width, 23, -70);
+            m_Drawables.Add(ID_PROGRESS_BAR, new DrawableProgressBar(26, y, Surface.Width - 27, y + 6));
+            AddTextTime(ID_TIME_POS, 0, y, 25);
+            AddTextTime(ID_TIME_LENGTH, Surface.Width, y, -25);
+            y += 7;
 
-            int time_y = Surface.Height - 1 - 5 - 7;
-            AddTextTime(ID_TIME_POS, 0, time_y, 25);
-            AddTextTime(ID_CLOCK, (Surface.Width / 2) - (39 / 2), time_y, 39 );
-            AddTextTime(ID_TIME_LENGTH, Surface.Width, time_y, -25);
-            Title = "Hello C#!";
+            y = Surface.Height - 1 - 5 - 1;
+            AddText(ID_STATUS, 0, y, 40);
+            AddTextTime(ID_CLOCK, (Surface.Width / 2) - (39 / 2), y, 39);
+            AddText(ID_EMAIL, Surface.Width, y, -70);
+
+
+
+            /*y = Surface.Height - 7;
+            AddText(666, 0, y, Surface.Width);
+
+            SetText(666, "Hello C#!");*/
             Draw();
+            Device.SetAsLCDForegroundApp(true);
         }
 
-        private void AddText(int id, int w, int h, int max_w)
+        private void AddText(int id, int x, int y, int max_w, byte color = Surface.PIXEL_ON)
         {
-            m_TextMap.Add(id, new DrawableText(w, h, max_w, m_MainFont));
+            m_Drawables.Add(id, new DrawableText(x, y, max_w, m_MainFont, color));
         }
-        private void AddTextTime(int id, int w, int h, int max_w)
+        private void AddTextTime(int id, int x, int y, int max_w, byte color = Surface.PIXEL_ON)
         {
-            m_TextMap.Add(id, new DrawableText(w, h, max_w, m_TimeFont));
+            m_Drawables.Add(id, new DrawableText(x, y, max_w, m_TimeFont, color));
         }
 
-        public string Title { set { m_TextMap[ID_TITLE].Text = value; } }
-        public string Artist { set { m_TextMap[ID_ARTIST].Text = value; } }
-        public string Album { set { m_TextMap[ID_ALBUM].Text = value; } }
+        public string Title { set { SetText(ID_TITLE, value);} }
+        public string Artist { set { SetText(ID_ARTIST, value); } }
+        public string Album { set { SetText(ID_ALBUM, value); } }
         public int TrackTime
         {
             set
             {
-                m_TextMap[ID_TIME_POS].Text = value > 0 ? string.Format("{0:00}:{1:00}", value / 60, value % 60) : "";
+                SetText(ID_TIME_POS, value > 0 ? string.Format("{0:00}:{1:00}", value / 60, value % 60) : "");
             }
         }
         public int TrackLength
         {
             set
             {
-                m_TextMap[ID_TIME_LENGTH].Text = value > 0 ? string.Format("{0:00}:{1:00}", value / 60, value % 60) : "";
+                SetText(ID_TIME_LENGTH, value > 0 ? string.Format("{0:00}:{1:00}", value / 60, value % 60) : "");
             }
         }
         private int playlist_pos = -1, playlist_length = -1;
@@ -79,22 +95,21 @@ namespace MPCdotNet.Client
         {
             if (playlist_pos < 0 || playlist_length < 0)
             {
-                m_TextMap[ID_PL_DISP].Text = "";
+                SetText(ID_PL_DISP, "" );
             }
             else
             {
                 var pl_len = string.Format("{0:000}", playlist_length);
-                m_TextMap[ID_PL_DISP].Text = string.Format("{0:" + new string('0', pl_len.Length) + "}/{1}", playlist_pos, pl_len);
+                SetText(ID_PL_DISP, string.Format("{0:" + new string('0', pl_len.Length) + "}/{1}", playlist_pos, pl_len));
             }
         }
 
         public void SetProgress(int val, int min, int max)
         {
-            Surface.BarAbs(2, Surface.Height - 1 - 3, Surface.Width - 3, Surface.Height - 3, Surface.PIXEL_OFF);
-            if (val > 0 && max - min > 0)
+            if (m_Drawables.ContainsKey(ID_PROGRESS_BAR))
             {
-                int x2 = (int)(((double)(val - min) / (double)(max - min)) * (double)(Surface.Width - 5) + 2.0);
-                if (x2 > 2) Surface.BarAbs(2, Surface.Height - 1 - 3, x2, Surface.Height - 3);
+                var progress = m_Drawables[ID_PROGRESS_BAR] as DrawableProgressBar;
+                progress.Set(val, min, max);
             }
         }
 
@@ -103,21 +118,27 @@ namespace MPCdotNet.Client
             switch (state)
             {
                 case PlaybackState.Playing:
-                    m_TextMap[ID_STATUS].Text = "Playing";
+                    SetText(ID_STATUS, "Playing");
                     break;
                 case PlaybackState.Paused:
-                    m_TextMap[ID_STATUS].Text = "Paused";
+                    SetText(ID_STATUS, "Paused");
                     break;
                 case PlaybackState.Stopped:
-                    m_TextMap[ID_STATUS].Text = "Stopped";
+                    SetText(ID_STATUS, "Stopped");
                     break;
 
             }
         }
 
+        public override void OnConfigure()
+        {
+            base.OnConfigure();
+            MessageBox.Show("Nothing to do here");
+        }
+
         public override void Update()
         {
-            m_TextMap[ID_CLOCK].Text = DateTime.Now.ToString("HH:mm:ss");
+            SetText(ID_CLOCK, DateTime.Now.ToString("HH:mm:ss"));
             base.Update();
         }
     }

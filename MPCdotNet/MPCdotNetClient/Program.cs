@@ -35,7 +35,7 @@ namespace MPCdotNet.Client
 
             mpc = new MPC(Properties.Settings.Default.Server1);
 
-            lcd = new LCD("MPCdotNet");
+            lcd = new LCD("MPCdotNet", false);
             lcd.SetPlaybackState(PlaybackState.Stopped);
             lcd.Artist = "";
             lcd.Title = "";
@@ -97,9 +97,12 @@ namespace MPCdotNet.Client
                     {
                         lcd.PlaylistPosition = mpc.CurrentStatus.Song;
                         lcd.PlaylistLength = mpc.CurrentStatus.PlaylistLength;
-                        lcd.TrackTime = mpc.CurrentStatus.Time[0];
-                        lcd.TrackLength = mpc.CurrentStatus.Time[1];
-                        lcd.SetProgress((int)mpc.CurrentStatus.Elapsed, 0, mpc.CurrentStatus.Time[1] * 1000);
+                        if (mpc.CurrentStatus.Time != null)
+                        {
+                            lcd.TrackTime = mpc.CurrentStatus.Time.Current;
+                            lcd.TrackLength = mpc.CurrentStatus.Time.Total;
+                            lcd.SetProgress((int)mpc.CurrentStatus.Elapsed, 0, mpc.CurrentStatus.Time.Total * 1000);
+                        }
                     }
                 }
                 lcd.SetPlaybackState(mpc.CurrentStatus.PlaybackState);

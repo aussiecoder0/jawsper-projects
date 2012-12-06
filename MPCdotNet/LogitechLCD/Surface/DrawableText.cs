@@ -1,23 +1,23 @@
-﻿namespace LogitechLCD
+﻿using System.Drawing;
+namespace LogitechLCD
 {
-    public class DrawableText
+    public class DrawableText : Drawable
     {
-        private bool m_Changed = false;
-        private int m_X, m_Y, m_Width, m_MaxWidth;
+        private int m_Width, m_MaxWidth;
         private string m_Str;
         Font m_Font;
         int prev_len;
+        private byte color = Surface.PIXEL_ON;
 
-        public DrawableText(int a_X, int a_Y, int a_Width, Font a_Font)
+        public DrawableText(int a_X, int a_Y, int a_Width, Font a_Font, byte color = Surface.PIXEL_ON)
+            : base(new Point(a_X, a_Y))
         {
-            m_X = a_X;
-            m_Y = a_Y;
             m_Width = a_Width;
             m_MaxWidth = a_Width;
-            m_Changed = false;
             m_Font = a_Font;
             m_Str = "";
             prev_len = -1;
+            this.color = color;
         }
 
         public string Text
@@ -32,16 +32,16 @@
             }
         }
 
-        public bool Draw(Surface a_Surface)
+        public override bool Draw(Surface a_Surface)
         {
             if (m_Changed)
             {
-                m_Changed = false;
+                //m_Changed = false;
 
-                int text_x = m_X;
+                int text_x = m_Position.X;
                 int text_width;
                 int prev_text_width = prev_len;
-                int bar_x = m_X;
+                int bar_x = m_Position.X;
 
                 prev_len = text_width = m_Font.MeasureWidth(m_Str);
                 if (prev_text_width < 0)
@@ -56,16 +56,17 @@
                 {
                     if (text_width > 0 - m_MaxWidth)
                         text_width = 0 - m_MaxWidth;
-                    text_x = m_X - text_width;
-                    bar_x = m_X - bar_width;
+                    text_x = m_Position.X - text_width;
+                    bar_x = m_Position.X - bar_width;
                 }
                 else
                 {
                     if (text_width > m_MaxWidth) text_width = m_MaxWidth;
                     if (bar_width > m_MaxWidth) bar_width = m_MaxWidth;
                 }
-                a_Surface.Bar(bar_x, m_Y, bar_width - 1, 6, Surface.PIXEL_OFF);
-                a_Surface.Print(m_Str, text_x, m_Y, m_Font, Surface.PIXEL_ON, text_x + text_width);
+
+                a_Surface.Bar(bar_x, m_Position.Y, bar_width - 1, 6, color == Surface.PIXEL_ON ? Surface.PIXEL_OFF : Surface.PIXEL_ON);
+                a_Surface.Print(m_Str, text_x, m_Position.Y, m_Font, color, text_x + text_width);
 
                 return true;
             }

@@ -12,6 +12,11 @@ namespace MPCdotNet
 
         internal MPCException(string line)
         {
+            if (line == null)
+            {
+                message_text = "Disconnected";
+                return;
+            }
             var rx = new Regex(@"^ACK \[(\d+)@(\d+)\] {([^}]*)} (.+)$");
             var m = rx.Match(line);
             if (m.Success)

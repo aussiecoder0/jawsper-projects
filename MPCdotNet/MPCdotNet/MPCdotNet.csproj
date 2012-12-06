@@ -111,6 +111,7 @@
     <Compile Include="Server.cs" />
     <Compile Include="ServerComponent.cs" />
     <Compile Include="SongInfo.cs" />
+    <Compile Include="SongTime.cs" />
     <Compile Include="Stats.cs" />
     <Compile Include="Status.cs" />
   </ItemGroup>

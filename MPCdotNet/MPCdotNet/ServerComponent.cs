@@ -18,6 +18,8 @@ namespace MPCdotNet
         private StreamReader r;
         private StreamWriter w;
 
+        internal event EventHandler Disconnected;
+
         internal ServerComponent(string host, int port)
         {
             m_Host = host;
@@ -51,7 +53,11 @@ namespace MPCdotNet
         {
             if (stream == null) return;
                 // say byebye to the server
+            try
+            {
                 WriteLine("close");
+            }
+            catch (IOException) { }
                 // closing this will kill the reader/writer and client
                 // this has a timeout to be able to flush the buffer
                 stream.Close(5000);
@@ -65,28 +71,39 @@ namespace MPCdotNet
 
         internal List<KeyValuePair<string,string>> SendCommand(string cmd, params string[] args)
         {
-            if (client == null) return null;
 
             if (args != null && args.Length > 0)
             {
                 cmd += " " + string.Join(" ", args.Select(a => a.Contains(" ") ? " " + a + " " : a));
             }
-            WriteLine(cmd);
-
             var list = new List<KeyValuePair<string, string>>();
-
-            while (true)
+            if (client == null) return list;
+            try
             {
-                var line = ReadLine();
-                if (IsError(line)) { throw new MPCException(line); }
-                if (line == "OK") break;
+                WriteLine(cmd);
 
-                var kv = line.Split(new string[] { ": " }, 2, StringSplitOptions.None);
-                if (kv.Length == 2)
+
+                while (true)
                 {
-                    list.Add(new KeyValuePair<string,string>(kv[0],kv[1]));
-                }
+                    var line = ReadLine();
+                    if (line == null)
+                    {
+                        throw new IOException();
+                    }
+                    if (IsError(line)) { throw new MPCException(line); }
+                    if (line == "OK") break;
 
+                    var kv = line.Split(new string[] { ": " }, 2, StringSplitOptions.None);
+                    if (kv.Length == 2)
+                    {
+                        list.Add(new KeyValuePair<string, string>(kv[0], kv[1]));
+                    }
+
+                }
+            }
+            catch (IOException)
+            {
+                if (Disconnected != null) Disconnected(this, null);
             }
 
             return list;
@@ -144,6 +161,7 @@ namespace MPCdotNet
 
         private bool IsError(string line)
         {
+            if( line == null ) return true;
             return line.StartsWith("ACK ");
         }
     }
