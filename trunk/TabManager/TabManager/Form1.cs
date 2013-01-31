@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
+﻿using System.ComponentModel;
+using System.IO;
 using System.Windows.Forms;
 using TabManager.TabFiles;
-using TabManager.TabFiles.PowerTab;
-using System.IO;
 
 namespace TabManager
 {
@@ -46,6 +39,10 @@ namespace TabManager
 
     public class TabList : BindingList<TabFile>
     {
+        public TabList() : base()
+        {
+            this.AllowNew = this.AllowEdit = this.AllowRemove = false;
+        }
         /*protected override bool SupportsSearchingCore
         {
             get { return true; }

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
+﻿using System.IO;
 using System.Text.RegularExpressions;
 
 namespace TabManager.TabFiles.GuitarPro
 {
     public class GuitarProDocument : TabFile
     {
-        public GuitarProDocument(Stream s) : base(s) { }
+        public GuitarProDocument(TabStream s) : base(s) { }
 
         private string m_strversion;
         private int m_version_major;
@@ -45,7 +41,7 @@ namespace TabManager.TabFiles.GuitarPro
             }
         }
 
-        public static bool IsType(Stream s)
+        public static bool IsType(TabStream s)
         {
             s.Position = 0;
             return s.ReadStringWithLength().StartsWith("FICHIER GUITAR PRO");

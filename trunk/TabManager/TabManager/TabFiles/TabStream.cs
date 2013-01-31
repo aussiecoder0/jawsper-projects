@@ -1,68 +1,69 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.IO;
 using System.Text;
-using System.IO;
 
 namespace TabManager.TabFiles
 {
-    static class TabStream
+    public class TabStream : FileStream
     {
-        public static int PeekByte(this Stream s)
+        public TabStream(string path, FileMode mode)
+            : base(path, mode)
         {
-            int b = s.ReadByte();
-            s.Position--;
+        }
+        public int PeekByte()
+        {
+            int b = ReadByte();
+            Position--;
             return b;
         }
 
-        public static uint LE_ReadUInt32(this Stream s)
+        public uint LE_ReadUInt32()
         {
-            long ret = ((s.ReadByte() & 0xFF) << 0) | ((s.ReadByte() & 0xFF) << 8) | ((s.ReadByte() & 0xFF) << 16) | ((s.ReadByte() & 0xFF) << 24);
+            long ret = ((ReadByte() & 0xFF) << 0) | ((ReadByte() & 0xFF) << 8) | ((ReadByte() & 0xFF) << 16) | ((ReadByte() & 0xFF) << 24);
             return (uint)(ret & 0xFFFFFFFF);
         }
-        public static int LE_ReadInt32(this Stream s)
+        public int LE_ReadInt32()
         {
-            return ((s.ReadByte() & 0xFF) << 0) | ((s.ReadByte() & 0xFF) << 8) | ((s.ReadByte() & 0xFF) << 16) | ((s.ReadByte() & 0xFF) << 24);
+            return ((ReadByte() & 0xFF) << 0) | ((ReadByte() & 0xFF) << 8) | ((ReadByte() & 0xFF) << 16) | ((ReadByte() & 0xFF) << 24);
         }
 
-        public static ushort LE_ReadUInt16(this Stream s)
+        public ushort LE_ReadUInt16()
         {
-            return (ushort)((((s.ReadByte() & 0xFF) << 0) | ((s.ReadByte() & 0xFF) << 8)) & 0xFFFF);
+            return (ushort)((((ReadByte() & 0xFF) << 0) | ((ReadByte() & 0xFF) << 8)) & 0xFFFF);
         }
-        public static short LE_ReadInt16(this Stream s)
+        public short LE_ReadInt16()
         {
-            return (short)((((s.ReadByte() & 0xFF) << 0) | ((s.ReadByte() & 0xFF) << 8)) & 0xFFFF);
-        }
-
-        public static byte LE_ReadUInt8(this Stream s)
-        {
-            return (byte)(s.ReadByte() & 0xFF);
-        }
-        public static sbyte LE_ReadInt8(this Stream s)
-        {
-            return (sbyte)(s.ReadByte() & 0xFF);
+            return (short)((((ReadByte() & 0xFF) << 0) | ((ReadByte() & 0xFF) << 8)) & 0xFFFF);
         }
 
-        public static string ReadStringWithLength(this Stream s)
+        public byte LE_ReadUInt8()
+        {
+            return (byte)(ReadByte() & 0xFF);
+        }
+        public sbyte LE_ReadInt8()
+        {
+            return (sbyte)(ReadByte() & 0xFF);
+        }
+
+        public string ReadStringWithLength()
         {
             var str = new StringBuilder();
-            int l = s.ReadByte();
+            int l = ReadByte();
             while (l-- > 0)
             {
-                str.Append((char)s.ReadByte());
+                str.Append((char)ReadByte());
             }
             return str.ToString();
         }
 
-        public static string GPReadString(this Stream s)
+        public string GPReadString()
         {
-            var x = s.LE_ReadUInt32();
+            var x = LE_ReadUInt32();
             if (x == 1)
             {
-                s.ReadByte();
+                ReadByte();
                 return null;
             }
-            return s.ReadStringWithLength();
+            return ReadStringWithLength();
         }
     }
 }

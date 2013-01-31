@@ -9,7 +9,7 @@ namespace TabManager.TabFiles.PowerTab
 
         public PowerTabHeader Header { get { return m_header; } }
 
-        public PowerTabDocument(Stream s) : base(s) { }
+        public PowerTabDocument(TabStream s) : base(s) { }
 
         protected override void Parse()
         {
@@ -20,10 +20,10 @@ namespace TabManager.TabFiles.PowerTab
                 case PowerTabHeader.FILEVERSION_1_0:
                 case PowerTabHeader.FILEVERSION_1_0_2:
                     m_FileType = "PowerTab v1.0.x";
-                    throw new NotImplementedException("1.0.x");
+                    throw new NotImplementedException(m_FileType);
                 case PowerTabHeader.FILEVERSION_1_5:
                     m_FileType = "PowerTab v1.5";
-                    throw new NotImplementedException("1.5");
+                    throw new NotImplementedException(m_FileType);
                 case PowerTabHeader.FILEVERSION_1_7:
                     m_FileType = "PowerTab v1.7";
                     ParseFormat_1_7(s);
@@ -47,7 +47,7 @@ namespace TabManager.TabFiles.PowerTab
         {
         }
 
-        public static bool IsType(Stream s)
+        public static bool IsType(TabStream s)
         {
             s.Position = 0;
             return s.LE_ReadUInt32() == PowerTabHeader.POWERTABFILE_MARKER;
