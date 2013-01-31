@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using TabManager.TabFiles.PowerTab;
+﻿using System.IO;
 using TabManager.TabFiles.GuitarPro;
+using TabManager.TabFiles.PowerTab;
 
 namespace TabManager.TabFiles
 {
@@ -26,8 +22,8 @@ namespace TabManager.TabFiles
         public string Artist { get { return m_Artist; } }
         public string Album { get { return m_Album; } }
 
-        protected Stream s;
-        protected TabFile(Stream s)
+        protected TabStream s;
+        protected TabFile(TabStream s)
         {
             this.s = s;
             this.s.Position = 0;
@@ -39,7 +35,7 @@ namespace TabManager.TabFiles
         public static TabFile OpenTab(FileInfo filename)
         {
             TabFile f = null;
-            using (var fs = new FileStream(filename.FullName, FileMode.Open))
+            using (var fs = new TabStream(filename.FullName, FileMode.Open))
             {
                 if (PowerTabDocument.IsType(fs))
                 {

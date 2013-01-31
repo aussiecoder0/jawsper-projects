@@ -32,7 +32,7 @@ namespace TabManager.TabFiles.PowerTab
         internal const byte AUTHORTYPE_AUTHORKNOWN = 0;
         internal const byte AUTHORTYPE_TRADITIONAL = 1;
 
-        internal bool ParseHeader(Stream s)
+        internal bool ParseHeader(TabStream s)
         {
             var marker = s.LE_ReadUInt32();
             if (marker != POWERTABFILE_MARKER)
@@ -47,7 +47,7 @@ namespace TabManager.TabFiles.PowerTab
             {
                 case FILEVERSION_1_0:
                 case FILEVERSION_1_0_2:
-                    throw new NotImplementedException("Need to implement 1.0 reader");
+                    throw new NotImplementedException("Need to implement 1.0.x reader");
                 case FILEVERSION_1_5:
                     throw new NotImplementedException("Need to implement 1.5 reader");
                 case FILEVERSION_1_7:
@@ -57,7 +57,7 @@ namespace TabManager.TabFiles.PowerTab
             }
         }
 
-        private bool ParseHeader_1_7(Stream s)
+        private bool ParseHeader_1_7(TabStream s)
         {
             m_fileType = s.LE_ReadUInt8();
 
